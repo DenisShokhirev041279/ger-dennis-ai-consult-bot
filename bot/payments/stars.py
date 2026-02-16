@@ -60,3 +60,9 @@ async def stars_success(message: Message, state: FSMContext):
         await state.set_state(UserStates.CONSULT_MODE)
         
         logger.info(f"Stars payment success user={message.from_user.id} amount={message.successful_payment.total_amount}")
+
+@router.message(F.text == "/testpay")
+async def test_payment(message: Message, state: FSMContext):
+    await activate_session(message.from_user.id, 30)
+    await state.set_state(UserStates.CONSULT_MODE)
+    await message.answer("✅ TEST MODE: 30 min session activated.")
