@@ -4,7 +4,6 @@ from aiogram.fsm.context import FSMContext
 from bot.states import UserStates
 from utils.db import get_user_lang
 from utils.i18n import get_text
-from bot.payments.stars import create_stars_invoice
 
 router = Router()
 
