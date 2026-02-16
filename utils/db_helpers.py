@@ -3,14 +3,14 @@ import time
 from utils.db import DB_PATH
 from utils.logger import logger
 
-async def create_payment_claim(user_id: int, package_key: str, payment_method: str) -> int:
+async def create_payment_claim(user_id: int, package_key: str, payment_method: str, ref: str = "", amount_text: str = "", chat_id: int = 0) -> int:
     """Create a new payment claim and return claim_id"""
     created_at = int(time.time())
     async with aiosqlite.connect(DB_PATH) as db:
         cursor = await db.execute("""
-            INSERT INTO payment_claims (user_id, package_key, payment_method, status, created_at)
-            VALUES (?, ?, ?, 'pending', ?)
-        """, (user_id, package_key, payment_method, created_at))
+            INSERT INTO payment_claims (user_id, package_key, payment_method, status, created_at, ref, amount_text, chat_id)
+            VALUES (?, ?, ?, 'pending', ?, ?, ?, ?)
+        """, (user_id, package_key, payment_method, created_at, ref, amount_text, chat_id))
         await db.commit()
         return cursor.lastrowid
 
@@ -23,23 +23,24 @@ async def get_payment_claim(claim_id: int):
         """, (claim_id,)) as cursor:
             return await cursor.fetchone()
 
-async def approve_payment_claim(claim_id: int, admin_note: str = ""):
+async def approve_payment_claim(claim_id: int, admin_id: int, admin_note: str = ""):
     """Approve a payment claim"""
+    approved_at = int(time.time())
     async with aiosqlite.connect(DB_PATH) as db:
         await db.execute("""
             UPDATE payment_claims 
-            SET status = 'approved', admin_note = ?
-            WHERE claim_id = ?
-        """, (admin_note, claim_id))
+            SET status = 'approved', admin_note = ?, approved_by = ?, approved_at = ?
+            WHERE claim_id = ? AND status = 'pending'
+        """, (admin_note, admin_id, approved_at, claim_id))
         await db.commit()
 
-async def reject_payment_claim(claim_id: int, admin_note: str = ""):
+async def reject_payment_claim(claim_id: int, admin_id: int, admin_note: str = ""):
     """Reject a payment claim"""
     async with aiosqlite.connect(DB_PATH) as db:
         await db.execute("""
             UPDATE payment_claims 
             SET status = 'rejected', admin_note = ?
-            WHERE claim_id = ?
+            WHERE claim_id = ? AND status = 'pending'
         """, (admin_note, claim_id))
         await db.commit()
 

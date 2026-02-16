@@ -38,7 +38,7 @@ async def admin_approve_claim(callback: CallbackQuery, bot: Bot):
         return
     
     # Approve claim
-    await approve_payment_claim(claim_id, f"Approved by {callback.from_user.id}")
+    await approve_payment_claim(claim_id, callback.from_user.id, f"Approved by {callback.from_user.id}")
     
     # Activate session
     duration = PACKAGES.get(pkg_key, PACKAGES["pkg_30"])["duration"]
@@ -80,7 +80,7 @@ async def admin_reject_claim(callback: CallbackQuery, bot: Bot):
         return
     
     # Reject claim
-    await reject_payment_claim(claim_id, f"Rejected by {callback.from_user.id}")
+    await reject_payment_claim(claim_id, callback.from_user.id, f"Rejected by {callback.from_user.id}")
     
     # Notify user
     user_lang = await get_user_lang(user_id)

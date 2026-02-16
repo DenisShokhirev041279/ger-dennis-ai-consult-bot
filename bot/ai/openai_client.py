@@ -14,6 +14,11 @@ async def get_ai_response(prompt: str, lang: str = "en") -> str:
     if not client:
         return "AI Authorization Error: API Key missing."
     
+    # Normalize language code (ru-RU → ru, en-US → en, etc.)
+    lang = lang.split("-")[0].lower() if lang else "en"
+    if lang not in ["ru", "en", "de"]:
+        lang = "en"
+    
     # Load system prompt
     prompt_path = os.path.join("bot", "prompts", f"system_{lang}.txt")
     if not os.path.exists(prompt_path):
@@ -23,7 +28,7 @@ async def get_ai_response(prompt: str, lang: str = "en") -> str:
         system_prompt = f.read()
 
     try:
-        model = os.getenv("OPENAI_MODEL", "gpt-4.1")
+        model = os.getenv("OPENAI_MODEL", "gpt-4o")
         response = await client.chat.completions.create(
             model=model,
             messages=[
@@ -31,11 +36,11 @@ async def get_ai_response(prompt: str, lang: str = "en") -> str:
                 {"role": "user", "content": prompt}
             ],
             max_tokens=2048,
-            temperature=0.7
+            temperature=0.3
         )
         return response.choices[0].message.content
     except Exception as e:
-        logger.exception(f"OpenAI API Error with model {os.getenv('OPENAI_MODEL', 'gpt-4.1')}")
+        logger.exception(f"OpenAI API Error with model {os.getenv('OPENAI_MODEL', 'gpt-4o')}")
         
         # Fallback to gpt-4o-mini
         try:
@@ -47,7 +52,7 @@ async def get_ai_response(prompt: str, lang: str = "en") -> str:
                     {"role": "user", "content": prompt}
                 ],
                 max_tokens=2048,
-                temperature=0.7
+                temperature=0.3
             )
             return response.choices[0].message.content
         except Exception as fallback_error:

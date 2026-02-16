@@ -6,6 +6,7 @@ from utils.db import get_user_lang
 from utils.i18n import get_text
 from utils.config import IBAN, WISE_DETAILS, USDT_WALLET, TON_WALLET, ADMIN_IDS
 from utils.db_helpers import create_payment_claim
+from utils.logger import logger
 
 router = Router()
 
@@ -16,39 +17,68 @@ PACKAGES = {
 }
 
 @router.callback_query(F.data.in_({"pay_fiat", "pay_crypto"}))
+async def pay_external_choose_method(callback: CallbackQuery, state: FSMContext):
+    """Show specific payment method buttons"""
+    user_id = callback.from_user.id
+    lang = await get_user_lang(user_id)
+    method_type = callback.data
+    
+    if method_type == "pay_fiat":
+        buttons = []
+        if IBAN:
+            buttons.append([InlineKeyboardButton(text="IBAN", callback_data="pay_iban")])
+        if WISE_DETAILS:
+            buttons.append([InlineKeyboardButton(text="Wise", callback_data="pay_wise")])
+        
+        if not buttons:
+            await callback.answer("Payment method temporarily unavailable", show_alert=True)
+            return
+        
+        kb = InlineKeyboardMarkup(inline_keyboard=buttons)
+        await callback.message.answer("Select fiat payment method:", reply_markup=kb)
+    
+    elif method_type == "pay_crypto":
+        buttons = []
+        if USDT_WALLET:
+            buttons.append([InlineKeyboardButton(text="USDT (TRC20)", callback_data="pay_usdt")])
+        if TON_WALLET:
+            buttons.append([InlineKeyboardButton(text="TON", callback_data="pay_ton")])
+        
+        if not buttons:
+            await callback.answer("Payment method temporarily unavailable", show_alert=True)
+            return
+        
+        kb = InlineKeyboardMarkup(inline_keyboard=buttons)
+        await callback.message.answer("Select crypto payment method:", reply_markup=kb)
+    
+    await callback.answer()
+
+@router.callback_query(F.data.in_({"pay_iban", "pay_wise", "pay_usdt", "pay_ton"}))
 async def pay_external_start(callback: CallbackQuery, state: FSMContext):
     user_id = callback.from_user.id
     lang = await get_user_lang(user_id)
-    method = callback.data
+    payment_method = callback.data.replace("pay_", "")  # iban, wise, usdt, ton
     
     data = await state.get_data()
     pkg_key = data.get("selected_package", "pkg_30")
     pkg = PACKAGES.get(pkg_key, PACKAGES["pkg_30"])
     
-    # Check if payment requisites are configured
-    if method == "pay_fiat" and not IBAN and not WISE_DETAILS:
-        await callback.answer("Payment method temporarily unavailable", show_alert=True)
-        return
-    
-    if method == "pay_crypto" and not USDT_WALLET and not TON_WALLET:
-        await callback.answer("Payment method temporarily unavailable", show_alert=True)
-        return
-    
     amount = f"{pkg['amount_usd']} USD / {pkg['amount_eur']} EUR"
     ref = f"REF-{user_id}-{pkg_key}"
     
-    await state.update_data(payment_ref=ref, payment_amount=amount, payment_method=method)
+    await state.update_data(payment_ref=ref, payment_amount=amount, payment_method=payment_method)
     
-    text_key = "fiat_instruct" if method == "pay_fiat" else "crypto_instruct"
-    
-    instruct_text = get_text(lang, text_key, 
-        amount=amount, 
-        iban=IBAN, 
-        wise=WISE_DETAILS, 
-        usdt=USDT_WALLET, 
-        ton=TON_WALLET, 
-        ref=ref
-    )
+    # Build instructions based on method
+    if payment_method == "iban":
+        instruct_text = f"Please send {amount} to:\nIBAN: {IBAN}\n\nReference: {ref}\n\nClick 'I Paid' when done."
+    elif payment_method == "wise":
+        instruct_text = f"Please send {amount} to:\nWise: {WISE_DETAILS}\n\nReference: {ref}\n\nClick 'I Paid' when done."
+    elif payment_method == "usdt":
+        instruct_text = f"Please send {amount} worth of USDT to:\nAddress (TRC20): {USDT_WALLET}\n\nComment: {ref}\n\nClick 'I Paid' when done."
+    elif payment_method == "ton":
+        instruct_text = f"Please send {amount} worth of TON to:\nAddress: {TON_WALLET}\n\nComment: {ref}\n\nClick 'I Paid' when done."
+    else:
+        instruct_text = "Payment method not configured."
     
     kb = InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text=get_text(lang, "i_paid"), callback_data="i_paid")]
@@ -70,8 +100,15 @@ async def i_paid_handler(callback: CallbackQuery, state: FSMContext, bot: Bot):
     amount = data.get("payment_amount", "UNKNOWN")
     method = data.get("payment_method", "unknown")
     
-    # Create payment claim instead of activating session
-    claim_id = await create_payment_claim(user_id, pkg_key, method)
+    # Create payment claim with full details
+    claim_id = await create_payment_claim(
+        user_id=user_id,
+        package_key=pkg_key,
+        payment_method=method,
+        ref=ref,
+        amount_text=amount,
+        chat_id=callback.message.chat.id
+    )
     
     # Notify ALL admins
     if ADMIN_IDS:
@@ -80,7 +117,7 @@ async def i_paid_handler(callback: CallbackQuery, state: FSMContext, bot: Bot):
             f"User: @{username} (ID: {user_id})\n"
             f"Package: {pkg_key}\n"
             f"Amount: {amount}\n"
-            f"Method: {method}\n"
+            f"Method: {method.upper()}\n"
             f"Reference: {ref}"
         )
         

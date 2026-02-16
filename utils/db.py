@@ -31,6 +31,11 @@ async def init_db():
                 payment_method TEXT,
                 status TEXT DEFAULT 'pending',
                 created_at INTEGER,
+                ref TEXT,
+                amount_text TEXT,
+                chat_id INTEGER,
+                approved_by INTEGER,
+                approved_at INTEGER,
                 admin_note TEXT
             )
         """)
