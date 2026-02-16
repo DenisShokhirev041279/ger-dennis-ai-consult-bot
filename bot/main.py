@@ -9,7 +9,7 @@ from utils.db import init_db
 from utils.logger import logger
 
 # Import Handlers (will be created next)
-from bot.handlers import start, lang, menu, bookings, consult, admin
+from bot.handlers import start, lang, menu, bookings, consult, admin, selftest
 from bot.payments import stars, external
 
 async def main():
@@ -32,6 +32,7 @@ async def main():
     dp.include_router(stars.router)     # Payment handlers
     dp.include_router(external.router)  # Payment handlers
     dp.include_router(admin.router)     # Admin handlers
+    dp.include_router(selftest.router)  # Admin selftest
     dp.include_router(consult.router)   # Must be last (catch-all)
 
     logger.info("Bot started...")

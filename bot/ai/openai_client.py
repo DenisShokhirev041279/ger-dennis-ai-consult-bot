@@ -23,8 +23,9 @@ async def get_ai_response(prompt: str, lang: str = "en") -> str:
         system_prompt = f.read()
 
     try:
+        model = os.getenv("OPENAI_MODEL", "gpt-4.1")
         response = await client.chat.completions.create(
-            model=os.getenv("OPENAI_MODEL", "gpt-4.1"),
+            model=model,
             messages=[
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": prompt}
@@ -34,5 +35,21 @@ async def get_ai_response(prompt: str, lang: str = "en") -> str:
         )
         return response.choices[0].message.content
     except Exception as e:
-        logger.error(f"OpenAI API Error: {e}")
-        return "Temporary AI error. Please try again."
+        logger.exception(f"OpenAI API Error with model {os.getenv('OPENAI_MODEL', 'gpt-4.1')}")
+        
+        # Fallback to gpt-4o-mini
+        try:
+            logger.info("Trying fallback model: gpt-4o-mini")
+            response = await client.chat.completions.create(
+                model="gpt-4o-mini",
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": prompt}
+                ],
+                max_tokens=2048,
+                temperature=0.7
+            )
+            return response.choices[0].message.content
+        except Exception as fallback_error:
+            logger.exception("OpenAI fallback model also failed")
+            return "Temporary AI error. Please try again."
