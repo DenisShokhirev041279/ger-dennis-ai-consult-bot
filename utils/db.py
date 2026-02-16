@@ -23,6 +23,26 @@ async def init_db():
                 is_active BOOLEAN DEFAULT 0
             )
         """)
+        await db.execute("""
+            CREATE TABLE IF NOT EXISTS payment_claims (
+                claim_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER,
+                package_key TEXT,
+                payment_method TEXT,
+                status TEXT DEFAULT 'pending',
+                created_at INTEGER,
+                admin_note TEXT
+            )
+        """)
+        await db.execute("""
+            CREATE TABLE IF NOT EXISTS trial_usage (
+                user_id INTEGER,
+                date TEXT,
+                message_count INTEGER DEFAULT 0,
+                photo_count INTEGER DEFAULT 0,
+                PRIMARY KEY (user_id, date)
+            )
+        """)
         await db.commit()
     logger.info("Database initialized.")
 

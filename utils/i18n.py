@@ -23,7 +23,10 @@ STRINGS = {
         "session_ended": "Session ended. Thank you! If you need more time, please book another slot.",
         "access_denied": "Please book a consultation first.",
         "time_left": "{minutes} minutes remaining.",
-        "processing": "Processing..."
+        "processing": "Processing...",
+        "payment_pending": "Payment claim submitted. Admin approval required.",
+        "payment_approved": "✅ Payment approved! Session activated.",
+        "payment_rejected": "❌ Payment rejected. Please provide proof (screenshot/txid) and try again."
     },
     "ru": {
         "welcome": "Привет! Я Деннис, AI Systems Architect. Выберите опцию:",
@@ -75,7 +78,10 @@ STRINGS = {
         "session_ended": "Sitzung beendet. Danke! Für mehr Zeit, bitte erneut buchen.",
         "access_denied": "Bitte buchen Sie zuerst eine Beratung.",
         "time_left": "Noch {minutes} Minuten.",
-        "processing": "Verarbeitung..."
+        "processing": "Verarbeitung...",
+        "payment_pending": "Zahlungsantrag eingereicht. Admin-Genehmigung erforderlich.",
+        "payment_approved": "✅ Zahlung genehmigt! Sitzung aktiviert.",
+        "payment_rejected": "❌ Zahlung abgelehnt. Bitte Nachweis (Screenshot/txid) vorlegen und erneut versuchen."
     }
 }
 

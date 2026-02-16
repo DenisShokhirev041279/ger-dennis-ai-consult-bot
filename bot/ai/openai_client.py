@@ -15,9 +15,9 @@ async def get_ai_response(prompt: str, lang: str = "en") -> str:
         return "AI Authorization Error: API Key missing."
     
     # Load system prompt
-    prompt_path = os.path.join("prompts", f"system_{lang}.md")
+    prompt_path = os.path.join("bot", "prompts", f"system_{lang}.txt")
     if not os.path.exists(prompt_path):
-        prompt_path = os.path.join("prompts", "system_en.md")
+        prompt_path = os.path.join("bot", "prompts", "system_en.txt")
     
     with open(prompt_path, "r", encoding="utf-8") as f:
         system_prompt = f.read()
