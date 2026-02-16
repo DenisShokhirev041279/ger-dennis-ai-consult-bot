@@ -1,0 +1,6 @@
+[build]
+builder = "docker"
+
+[deploy]
+startCommand = "python bot/main.py"
+restartPolicyType = "on_failure"

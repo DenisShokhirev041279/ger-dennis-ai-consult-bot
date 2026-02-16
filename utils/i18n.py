@@ -1,0 +1,87 @@
+STRINGS = {
+    "en": {
+        "welcome": "Welcome! I am Dennis, an AI Systems Architect. Please select an option:",
+        "choose_lang": "Please select your language / Выберите язык / Bitte wählen Sie Ihre Sprache:",
+        "menu_services": "Services",
+        "menu_book": "Book Consultation",
+        "menu_portfolio": "Portfolio",
+        "menu_channel": "Channel",
+        "book_select_package": "Choose a consultation package:",
+        "pkg_30": "30 min Audit (4950 Stars)",
+        "pkg_60": "60 min Strategy (8950 Stars)",
+        "pkg_audit": "Full Project Audit (24950 Stars)",
+        "payment_method": "Select payment method:",
+        "pay_stars": "Telegram Stars",
+        "pay_fiat": "EUR / USD (Wise/IBAN)",
+        "pay_crypto": "Crypto (USDT/TON)",
+        "fiat_instruct": "Please send {amount} to:\nIBAN: {iban}\nWise: {wise}\n\nReference: {ref}\n\nClick 'I Paid' when done.",
+        "crypto_instruct": "Please send {amount} to:\nUSDT (TRC20): {usdt}\nTON: {ton}\n\nComment: {ref}\n\nClick 'I Paid' when done.",
+        "i_paid": "I Paid",
+        "admin_alert": "New payment claim from user {user_id} ({username}).\nRef: {ref}\nAmount: {amount}",
+        "payment_success": "Payment successful! Consultant session unlocked.",
+        "session_unlocked": "Session unlocked. You can now chat with me freely. Time starts now.",
+        "session_ended": "Session ended. Thank you! If you need more time, please book another slot.",
+        "access_denied": "Please book a consultation first.",
+        "time_left": "{minutes} minutes remaining.",
+        "processing": "Processing..."
+    },
+    "ru": {
+        "welcome": "Привет! Я Деннис, AI Systems Architect. Выберите опцию:",
+        "choose_lang": "Please select your language / Выберите язык / Bitte wählen Sie Ihre Sprache:",
+        "menu_services": "Услуги",
+        "menu_book": "Забронировать",
+        "menu_portfolio": "Портфолио",
+        "menu_channel": "Канал",
+        "book_select_package": "Выберите пакет консультации:",
+        "pkg_30": "30 мин Аудит (4950 Stars)",
+        "pkg_60": "60 мин Стратегия (8950 Stars)",
+        "pkg_audit": "Полный аудит проекта (24950 Stars)",
+        "payment_method": "Выберите метод оплаты:",
+        "pay_stars": "Telegram Stars",
+        "pay_fiat": "EUR / USD (Wise/IBAN)",
+        "pay_crypto": "Крипта (USDT/TON)",
+        "fiat_instruct": "Пожалуйста переведите {amount} на:\nIBAN: {iban}\nWise: {wise}\n\nНазначение: {ref}\n\nНажмите 'Я оплатил' после перевода.",
+        "crypto_instruct": "Пожалуйста переведите {amount} на:\nUSDT (TRC20): {usdt}\nTON: {ton}\n\nКомментарий: {ref}\n\nНажмите 'Я оплатил' после перевода.",
+        "i_paid": "Я оплатил",
+        "admin_alert": "Заявка на оплату от {user_id} ({username}).\nRef: {ref}\nСумма: {amount}",
+        "payment_success": "Оплата прошла успешно! Консультация открыта.",
+        "session_unlocked": "Сессия открыта. Вы можете писать мне свободно. Время пошло.",
+        "session_ended": "Сессия завершена. Спасибо! Если нужно больше времени, забронируйте новый слот.",
+        "access_denied": "Пожалуйста, сначала забронируйте консультацию.",
+        "time_left": "Осталось {minutes} минут.",
+        "processing": "Обрабатываю..."
+    },
+    "de": {
+        "welcome": "Willkommen! Ich bin Dennis, AI Systems Architect. Bitte wählen Sie eine Option:",
+        "choose_lang": "Please select your language / Выберите язык / Bitte wählen Sie Ihre Sprache:",
+        "menu_services": "Dienstleistungen",
+        "menu_book": "Buchen",
+        "menu_portfolio": "Portfolio",
+        "menu_channel": "Kanal",
+        "book_select_package": "Wählen Sie ein Beratungspaket:",
+        "pkg_30": "30 Min Audit (4950 Stars)",
+        "pkg_60": "60 Min Strategie (8950 Stars)",
+        "pkg_audit": "Vollständiges Projekt-Audit (24950 Stars)",
+        "payment_method": "Zahlungsmethode wählen:",
+        "pay_stars": "Telegram Stars",
+        "pay_fiat": "EUR / USD (Wise/IBAN)",
+        "pay_crypto": "Krypto (USDT/TON)",
+        "fiat_instruct": "Bitte senden Sie {amount} an:\nIBAN: {iban}\nWise: {wise}\n\nVerwendungszweck: {ref}\n\nKlicken Sie auf 'Ich habe bezahlt', wenn fertig.",
+        "crypto_instruct": "Bitte senden Sie {amount} an:\nUSDT (TRC20): {usdt}\nTON: {ton}\n\nKommentar: {ref}\n\nKlicken Sie auf 'Ich habe bezahlt', wenn fertig.",
+        "i_paid": "Ich habe bezahlt",
+        "admin_alert": "Neue Zahlungsanforderung von {user_id} ({username}).\nRef: {ref}\nBetrag: {amount}",
+        "payment_success": "Zahlung erfolgreich! Beratungssitzung freigeschaltet.",
+        "session_unlocked": "Sitzung freigeschaltet. Sie können jetzt frei schreiben. Die Zeit läuft.",
+        "session_ended": "Sitzung beendet. Danke! Für mehr Zeit, bitte erneut buchen.",
+        "access_denied": "Bitte buchen Sie zuerst eine Beratung.",
+        "time_left": "Noch {minutes} Minuten.",
+        "processing": "Verarbeitung..."
+    }
+}
+
+def get_text(lang_code, key, **kwargs):
+    lang = STRINGS.get(lang_code, STRINGS["en"])
+    text = lang.get(key, STRINGS["en"].get(key, key))
+    if kwargs:
+        return text.format(**kwargs)
+    return text

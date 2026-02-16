@@ -1,0 +1,21 @@
+# Git
+.git
+.gitignore
+
+# Python
+.venv/
+venv/
+__pycache__/
+*.pyc
+
+# Env
+.env
+.env.*
+.env.example
+
+# VS Code
+.vscode/
+
+# Project
+koyeb.md
+test_claude.py

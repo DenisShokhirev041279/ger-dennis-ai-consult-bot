@@ -1,0 +1,80 @@
+{
+  "project": {
+    "name": "ger-dennis-ai-consult-bot",
+    "os": "windows",
+    "shell": "powershell",
+    "root_dir": ".",
+    "python": "python"
+  },
+  "tools": {
+    "filesystem": {
+      "enabled": true,
+      "allow": [
+        "**/*"
+      ],
+      "deny": [
+        "**/.env",
+        "**/.env.*",
+        "**/secrets*",
+        "**/*.key",
+        "**/*.pem"
+      ]
+    },
+    "terminal": {
+      "enabled": true,
+      "shell": "powershell",
+      "allowed_commands_prefix": [
+        "python",
+        "pip",
+        "py",
+        "where",
+        "dir",
+        "type",
+        "echo",
+        "mkdir",
+        "rmdir",
+        "del",
+        "copy",
+        "move",
+        "git",
+        "docker",
+        "sqlite3"
+      ],
+      "deny_commands_contains": [
+        "curl ",
+        "wget ",
+        "Invoke-WebRequest",
+        "irm ",
+        "iwr "
+      ]
+    },
+    "git": {
+      "enabled": true,
+      "allow_init": true,
+      "allow_commit": true,
+      "allow_branch": true,
+      "allow_push": false
+    },
+    "python": {
+      "enabled": true,
+      "min_version": "3.10",
+      "venv": {
+        "use": true,
+        "path": ".venv"
+      }
+    },
+    "docker": {
+      "enabled": true,
+      "allow_build": true,
+      "allow_run": true
+    },
+    "sqlite": {
+      "enabled": true,
+      "db_path": "data/bot.db"
+    },
+    "network": {
+      "enabled": false,
+      "note": "No external HTTP calls during build. Only code generation + local tests."
+    }
+  }
+}

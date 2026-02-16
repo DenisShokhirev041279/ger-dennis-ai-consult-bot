@@ -1,0 +1,4 @@
+aiogram>=3.25
+python-dotenv
+openai>=1.0.0
+aiosqlite
