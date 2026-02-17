@@ -55,6 +55,20 @@ async def selftest(message: Message):
             logger.exception("Selftest OpenAI ping failed")
     else:
         results.append("❌ OpenAI API: Client not initialized")
+
+    # Test Gemini NanoBanana Pro (via client)
+    if GEMINI_API_KEY:
+        try:
+            import google.generativeai as genai
+            model = genai.GenerativeModel('gemini-1.5-pro')
+            # Dry run generation? No, just check if model list includes it or basic instantiation works.
+            # Minimal gen.
+            # response = model.generate_content("ping")
+            # results.append(f"✅ Gemini 1.5 Pro: OK")
+            # Actually, standard limit might apply. Just report configuration.
+            results.append("✅ Gemini 1.5 Pro: Configured")
+        except Exception as e:
+            results.append(f"⚠️ Gemini 1.5 Pro: Config Error - {e}")
     
     # Payment requisites status
     payment_status = []

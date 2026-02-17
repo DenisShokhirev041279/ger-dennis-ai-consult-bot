@@ -92,11 +92,15 @@ async def ref_photo_done(message: Message, state: FSMContext, bot: Bot):
         # Call Gemini Logic
         result_image_url = await merge_reference_photos(temp_files, prompt)
         
-        await message.answer_photo(result_image_url, caption="✅ Merged Result")
+        await message.answer_photo(result_image_url, caption="✅ Merged Result (NanoBanana Pro)")
         
     except Exception as e:
+        err_msg = str(e)
         logger.exception("Ref Photo Failed")
-        await message.answer("Error processing request. Please try again later.")
+        if "Quota" in err_msg or "429" in err_msg:
+            await message.answer("⚠️ NanoBanana Pro is currently busy (Quota Exceeded). Please try again in a few minutes.")
+        else:
+            await message.answer("❌ Error processing request. Please try again.")
     finally:
         # Cleanup
         for p in temp_files:
