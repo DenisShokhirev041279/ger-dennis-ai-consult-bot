@@ -9,7 +9,11 @@ router = Router()
 
 @router.callback_query(F.data == "menu_book")
 async def start_booking(callback: CallbackQuery, state: FSMContext):
-    user_id = callback.from_user.id
+    await booking_start(callback.message, state)
+    await callback.answer()
+
+async def booking_start(message, state: FSMContext):
+    user_id = message.from_user.id
     lang = await get_user_lang(user_id)
     
     kb = InlineKeyboardMarkup(inline_keyboard=[
@@ -18,9 +22,8 @@ async def start_booking(callback: CallbackQuery, state: FSMContext):
         [InlineKeyboardButton(text=get_text(lang, "pkg_audit"), callback_data="pkg_audit")]
     ])
     
-    await callback.message.answer(get_text(lang, "book_select_package"), reply_markup=kb)
+    await message.answer(get_text(lang, "book_select_package"), reply_markup=kb)
     await state.set_state(UserStates.BOOKING_PACKAGE)
-    await callback.answer()
 
 @router.callback_query(F.data.startswith("pkg_"))
 async def select_payment(callback: CallbackQuery, state: FSMContext):

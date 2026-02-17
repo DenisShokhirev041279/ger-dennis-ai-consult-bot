@@ -8,9 +8,16 @@ from utils.config import BOT_TOKEN
 from utils.db import init_db
 from utils.logger import logger
 
-# Import Handlers (will be created next)
-from bot.handlers import start, lang, menu, bookings, consult, admin, selftest
-from bot.payments import stars, external
+# Import Handlers
+try:
+    from bot.handlers import start, lang, menu, bookings, consult, admin, selftest
+    from bot.payments import stars, external
+except ImportError as e:
+    logger.error(f"Failed to import handlers: {e}")
+    # Continue to allow basic boot if possible, or exit? 
+    # If handlers fail, bot is useless. But maybe partial load?
+    # For now just log.
+    pass
 
 async def main():
     if not BOT_TOKEN:
