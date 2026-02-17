@@ -28,7 +28,7 @@ async def get_ai_response(prompt: str, lang: str = "en") -> str:
         system_prompt = f.read()
 
     try:
-        model = os.getenv("OPENAI_MODEL", "gpt-4o")
+        model = os.getenv("OPENAI_MODEL", "gpt-4.1")
         response = await client.chat.completions.create(
             model=model,
             messages=[
@@ -40,13 +40,14 @@ async def get_ai_response(prompt: str, lang: str = "en") -> str:
         )
         return response.choices[0].message.content
     except Exception as e:
-        logger.exception(f"OpenAI API Error with model {os.getenv('OPENAI_MODEL', 'gpt-4o')}")
+        logger.exception(f"OpenAI API Error with model {os.getenv('OPENAI_MODEL', 'gpt-4.1')}")
         
         # Fallback to gpt-4o-mini
+        fallback_model = "gpt-4o-mini"
         try:
-            logger.info("Trying fallback model: gpt-4o-mini")
+            logger.info(f"Trying fallback model: {fallback_model}")
             response = await client.chat.completions.create(
-                model="gpt-4o-mini",
+                model=fallback_model,
                 messages=[
                     {"role": "system", "content": system_prompt},
                     {"role": "user", "content": prompt}

@@ -24,6 +24,11 @@ async def selftest(message: Message):
     # Check OPENAI_API_KEY
     if OPENAI_API_KEY:
         results.append("✅ OPENAI_API_KEY: OK")
+        # Show current model config
+        import os
+        current_model = os.getenv("OPENAI_MODEL", "gpt-4.1")
+        results.append(f"🤖 OpenAI Model: {current_model}")
+        results.append(f"🔁 Fallback: gpt-4o-mini")
     else:
         results.append("❌ OPENAI_API_KEY: MISSING")
     
