@@ -7,3 +7,4 @@ class UserStates(StatesGroup):
     BOOKING_PAYMENT = State()
     WAIT_FOR_PAYMENT = State()
     CONSULT_MODE = State()
+    REF_PHOTO_COLLECT = State()

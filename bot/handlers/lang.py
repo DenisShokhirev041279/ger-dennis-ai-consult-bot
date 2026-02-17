@@ -18,7 +18,9 @@ async def lang_selected(callback: CallbackQuery, state: FSMContext):
     # Save to FSM
     await state.update_data(lang=lang_code)
     
-    await show_main_menu(callback.message, lang_code, state)
+    # Show Persistent Menu
+    from bot.handlers.menu import show_main_menu
+    await show_main_menu(callback.message, user_id)
     await callback.answer()
 
 async def show_main_menu(message, lang_code, state):

@@ -33,6 +33,10 @@ async def main():
     dp.include_router(external.router)  # Payment handlers
     dp.include_router(admin.router)     # Admin handlers
     dp.include_router(selftest.router)  # Admin selftest
+    
+    from bot.handlers import reference_photo
+    dp.include_router(reference_photo.router)
+    
     dp.include_router(consult.router)   # Must be last (catch-all)
 
     logger.info("Bot started...")

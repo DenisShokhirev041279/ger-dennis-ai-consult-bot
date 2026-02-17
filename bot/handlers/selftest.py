@@ -34,10 +34,13 @@ async def selftest(message: Message):
     
     # Check GEMINI_API_KEY
     if GEMINI_API_KEY:
-        results.append("✅ GEMINI_API_KEY: Present")
+        results.append("✅ GEMINI_API_KEY: Present (Ref Photo Enabled)")
     else:
-        results.append("⚠️ GEMINI_API_KEY: Not set (Reference Photo disabled)")
-    
+        results.append("⚠️ GEMINI_API_KEY: Not set (Ref Photo Disabled)")
+
+    # Trial Config
+    results.append(f"📊 Trial Limits: {TRIAL_MAX_MESSAGES} msgs/day, {TRIAL_LIMIT_PER_DAY} photos/day")
+
     # Test OpenAI ping
     if client:
         try:

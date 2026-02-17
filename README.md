@@ -17,3 +17,13 @@ See [koyeb.md](koyeb.md) for 1-click deployment steps.
 ## 💰 Payments
 - **Telegram Stars**: Native XTR invoices.
 - **External**: Fiat/Crypto instructions with Admin Approval workflow.
+
+## 🧩 Reference Photo (Gemini Vision)
+- **Usage**: Send 2-14 photos via "🧩 Reference Photo" menu to get a merged concept.
+- **Tech**: Uses Gemini to analyze and DALL-E 3 to generate.
+- **Limits**: Trial users limited by `TRIAL_LIMIT_PER_DAY`.
+
+## ⚖️ Trial System
+- **Free Users**: Limited to `TRIAL_MAX_MESSAGES` per day.
+- **Paid Users**: Unlimited access for session duration.
+- **Hard Stop**: After limit, user must buy a package.

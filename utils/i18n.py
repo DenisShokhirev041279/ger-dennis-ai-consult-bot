@@ -26,7 +26,12 @@ STRINGS = {
         "processing": "Processing...",
         "payment_pending": "Payment claim submitted. Admin approval required.",
         "payment_approved": "✅ Payment approved! Session activated.",
-        "payment_rejected": "❌ Payment rejected. Please provide proof (screenshot/txid) and try again."
+        "payment_rejected": "❌ Payment rejected. Please provide proof (screenshot/txid) and try again.",
+        "trial_ended": "Trial limit reached today. To continue, please book a consultation.",
+        "ref_photo_intro": "Send 2-14 reference photos. Then send /done. To cancel: /cancel. You can add text context.",
+        "ref_photo_error_count": "Please send between 2 and 14 photos.",
+        "ref_photo_done": "Processing your reference merge... (This may take a minute)",
+        "ref_photo_limit": "Daily reference photo limit reached. Please book a session."
     },
     "ru": {
         "welcome": "Привет! Я Деннис, AI Systems Architect. Выберите опцию:",
@@ -73,15 +78,8 @@ STRINGS = {
         "crypto_instruct": "Bitte senden Sie {amount} an:\nUSDT (TRC20): {usdt}\nTON: {ton}\n\nKommentar: {ref}\n\nKlicken Sie auf 'Ich habe bezahlt', wenn fertig.",
         "i_paid": "Ich habe bezahlt",
         "admin_alert": "Neue Zahlungsanforderung von {user_id} ({username}).\nRef: {ref}\nBetrag: {amount}",
-        "payment_success": "Zahlung erfolgreich! Beratungssitzung freigeschaltet.",
-        "session_unlocked": "Sitzung freigeschaltet. Sie können jetzt frei schreiben. Die Zeit läuft.",
-        "session_ended": "Sitzung beendet. Danke! Für mehr Zeit, bitte erneut buchen.",
-        "access_denied": "Bitte buchen Sie zuerst eine Beratung.",
-        "time_left": "Noch {minutes} Minuten.",
-        "processing": "Verarbeitung...",
-        "payment_pending": "Zahlungsantrag eingereicht. Admin-Genehmigung erforderlich.",
-        "payment_approved": "✅ Zahlung genehmigt! Sitzung aktiviert.",
-        "payment_rejected": "❌ Zahlung abgelehnt. Bitte Nachweis (Screenshot/txid) vorlegen und erneut versuchen."
+        "payment_rejected": "❌ Zahlung abgelehnt. Bitte Nachweis (Screenshot/txid) vorlegen und erneut versuchen.",
+        "trial_ended": "Testlimit für heute erreicht. Um fortzufahren, buchen Sie bitte eine Beratung."
     }
 }
 

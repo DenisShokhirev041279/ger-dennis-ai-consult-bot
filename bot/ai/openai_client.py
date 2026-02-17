@@ -10,9 +10,12 @@ else:
     client = None
     logger.warning("OPENAI_API_KEY is not set. AI features will fail.")
 
-async def get_ai_response(prompt: str, lang: str = "en") -> str:
+async def get_ai_response(prompt: str, lang: str = "en", mode: str = "paid") -> str:
     if not client:
         return "AI Authorization Error: API Key missing."
+    
+    # Token limits
+    max_tokens = 2048 if mode == "paid" else 600
     
     # Normalize language code (ru-RU → ru, en-US → en, etc.)
     lang = lang.split("-")[0].lower() if lang else "en"
@@ -35,7 +38,7 @@ async def get_ai_response(prompt: str, lang: str = "en") -> str:
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": prompt}
             ],
-            max_tokens=2048,
+            max_tokens=max_tokens,
             temperature=0.3
         )
         return response.choices[0].message.content
@@ -52,7 +55,7 @@ async def get_ai_response(prompt: str, lang: str = "en") -> str:
                     {"role": "system", "content": system_prompt},
                     {"role": "user", "content": prompt}
                 ],
-                max_tokens=2048,
+                max_tokens=max_tokens,
                 temperature=0.3
             )
             return response.choices[0].message.content

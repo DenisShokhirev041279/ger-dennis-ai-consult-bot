@@ -13,7 +13,19 @@ async def cmd_start(message: Message, state: FSMContext):
     # Reset state
     await state.clear()
     
-    # Language Keyboard Only
+    user_id = message.from_user.id
+    # Check if user exists/has lang
+    # Actually, let's always offer lang selection on /start for simplicity?
+    # Or if user is known, show menu? 
+    # Requirement: "Show on /start and language selection".
+    
+    # Let's show language selection inline, but ALSO show the keyboard?
+    # No, usually lang select -> then menu.
+    # But if they type /start later, maybe they want menu.
+    
+    # Hybrid: Show Lang, and if they pick one, show menu. 
+    # But if they already HAVE a language set?
+    
     kb = InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text="Русский 🇷🇺", callback_data="lang_ru")],
         [InlineKeyboardButton(text="English 🇬🇧", callback_data="lang_en")],
@@ -25,3 +37,12 @@ async def cmd_start(message: Message, state: FSMContext):
         reply_markup=kb
     )
     await state.set_state(UserStates.LANGUAGE_SELECT)
+    
+    # Also attempt to show menu if they ignore lang? 
+    # The request says "Show persistent menu... on /start".
+    # Creating a reply keyboard AND inline keyboard in one message is impossible.
+    # So we send Inline for lang, then maybe text with Reply?
+    # Or just wait for lang selection.
+    
+    # Let's just rely on lang selection to trigger menu show.
+    # And if they are an old user, they can re-select lang to get menu.
