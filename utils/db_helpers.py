@@ -86,3 +86,19 @@ async def count_active_sessions() -> int:
         async with db.execute("SELECT COUNT(*) FROM sessions WHERE is_active = 1") as cursor:
             row = await cursor.fetchone()
             return row[0] if row else 0
+
+async def reset_user_data(user_id: int):
+    """
+    Debug: Reset user data to fresh state.
+    - End active sessions
+    - Clear trial usage
+    - Clear payment claims
+    """
+    async with aiosqlite.connect(DB_PATH) as db:
+        # End sessions
+        await db.execute("UPDATE sessions SET is_active = 0 WHERE user_id = ?", (user_id,))
+        # Clear trial usage
+        await db.execute("DELETE FROM trial_usage WHERE user_id = ?", (user_id,))
+        # Clear payment claims
+        await db.execute("DELETE FROM payment_claims WHERE user_id = ?", (user_id,))
+        await db.commit()

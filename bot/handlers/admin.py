@@ -97,3 +97,26 @@ async def admin_reject_claim(callback: CallbackQuery, bot: Bot):
         f"User {user_id} notified"
     )
     await callback.answer("Rejected")
+
+from aiogram.filters import Command
+from utils.db_helpers import reset_user_data
+
+@router.message(Command("reset_user"))
+async def cmd_reset_user(message, command):
+    if message.from_user.id not in ADMIN_IDS:
+        return
+
+    # Check args
+    if not command.args:
+        await message.answer("Usage: /reset_user <user_id>")
+        return
+    
+    try:
+        target_user_id = int(command.args)
+        await reset_user_data(target_user_id)
+        await message.answer(f"✅ User {target_user_id} fully reset (Session ended, Trial cleared, Claims deleted).")
+    except ValueError:
+        await message.answer("Invalid User ID")
+    except Exception as e:
+        logger.error(f"Reset user failed: {e}")
+        await message.answer(f"❌ Error: {e}")
