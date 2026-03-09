@@ -21,6 +21,19 @@ async def get_main_keyboard(user_lang):
         # Insert in new row or append
         buttons.insert(1, [KeyboardButton(text=ref_btn_text)])
     
+    # Referral button
+    ref_btn_text = "🤝 Рефералы" if user_lang == "ru" else "🤝 Referrals"
+    
+    # Subscribe / My Plan
+    sub_text = "⭐ Подписка" if user_lang == "ru" else "⭐ Subscribe / My Plan"
+    
+    # AI Tools
+    tools_text = "🎨 AI Tools" if user_lang != "de" else "🎨 KI Werkzeuge" # Basic DE support
+    if user_lang == "ru": tools_text = "🎨 AI Инструменты"
+
+    buttons.insert(0, [KeyboardButton(text=sub_text)])
+    buttons.append([KeyboardButton(text=ref_btn_text), KeyboardButton(text=tools_text)])
+    
     # Help row
     buttons.append([KeyboardButton(text="Help / Помощь")])
     
@@ -49,6 +62,41 @@ async def menu_help(message: Message):
 async def menu_portfolio(message: Message):
     await message.answer("Portfolio: https://t.me/ger_dennis_ai")
 
-@router.message(F.text.in_({"Канал", "Channel", "Kanal"}))
-async def menu_channel(message: Message):
-    await message.answer("Channel: https://t.me/ger_dennis")
+@router.message(F.text.in_({"⭐ Подписка", "⭐ Subscribe / My Plan"}))
+async def menu_subscribe_btn(message: Message, state):
+    # Route to the inline handler logic
+    from bot.handlers.subscribe import show_subscribe_menu
+    # We need to simulate a callback query or refactor.
+    # Refactoring show_subscribe_menu to support Message as well.
+    # Quick wrapper:
+    class MockCallback:
+        def __init__(self, msg):
+            self.from_user = msg.from_user
+            self.message = msg
+            
+        async def answer(self, *args, **kwargs):
+            pass
+            
+    await show_subscribe_menu(MockCallback(message))
+
+@router.message(F.text.in_({"🤝 Рефералы", "🤝 Referrals"}))
+async def menu_referrals(message: Message):
+    user_id = message.from_user.id
+    user_lang = await get_user_lang(user_id)
+    
+    bot_info = await message.bot.get_me()
+    ref_link = f"https://t.me/{bot_info.username}?start=ref_{user_id}"
+    
+    msg = (
+        f"🎁 **Реферальная программа**\n\n"
+        f"Приглашайте друзей и получайте бонусные сообщения!\n"
+        f"За каждого приглашенного: +1 бонусное сообщение.\n\n"
+        f"Ваша ссылка: `{ref_link}`"
+    ) if user_lang == "ru" else (
+        f"🎁 **Referral Program**\n\n"
+        f"Invite friends and get bonus trial messages!\n"
+        f"For each referral: +1 bonus message.\n\n"
+        f"Your link: `{ref_link}`"
+    )
+    
+    await message.answer(msg, parse_mode="Markdown")

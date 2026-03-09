@@ -12,7 +12,8 @@ async def init_db():
             CREATE TABLE IF NOT EXISTS users (
                 user_id INTEGER PRIMARY KEY,
                 language_code TEXT DEFAULT 'en',
-                username TEXT
+                username TEXT,
+                bonus_credits INTEGER DEFAULT 0
             )
         """)
         await db.execute("""
@@ -48,8 +49,58 @@ async def init_db():
                 PRIMARY KEY (user_id, date)
             )
         """)
+        
+        # PHASE 1 MIGRATIONS
+        await db.execute("""
+            CREATE TABLE IF NOT EXISTS conversation_history (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER NOT NULL,
+                session_id TEXT,
+                role TEXT NOT NULL CHECK(role IN ('user','assistant','system')),
+                content TEXT NOT NULL,
+                tokens_used INTEGER DEFAULT 0,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
+        await db.execute("CREATE INDEX IF NOT EXISTS idx_conv_user_session ON conversation_history(user_id, session_id)")
+        
+        await db.execute("""
+            CREATE TABLE IF NOT EXISTS referrals (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                referrer_id INTEGER NOT NULL,
+                referred_id INTEGER NOT NULL UNIQUE,
+                bonus_granted BOOLEAN DEFAULT 0,
+                referred_subscribed BOOLEAN DEFAULT 0,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
+        
+        await db.execute("""
+            CREATE TABLE IF NOT EXISTS analytics_events (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER,
+                event_type TEXT NOT NULL,
+                event_data TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
+        await db.execute("CREATE INDEX IF NOT EXISTS idx_events_type ON analytics_events(event_type, created_at)")
+        
+        await db.execute("""
+            CREATE TABLE IF NOT EXISTS subscriptions (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER NOT NULL,
+                plan TEXT NOT NULL CHECK(plan IN ('starter','pro','business')),
+                status TEXT DEFAULT 'active' CHECK(status IN ('active','expired','cancelled')),
+                daily_limit INTEGER NOT NULL,
+                started_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                expires_at TIMESTAMP NOT NULL,
+                auto_renew BOOLEAN DEFAULT 1
+            )
+        """)
+        
         await db.commit()
-    logger.info("Database initialized.")
+    logger.info("Database initialized with Phase 1 tables.")
 
 async def set_user_lang(user_id, lang_code, username=None):
     async with aiosqlite.connect(DB_PATH) as db:

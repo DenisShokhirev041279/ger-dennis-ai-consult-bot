@@ -1,0 +1,676 @@
+{
+  "meta": {
+    "project": "Ger Dennis AI Consult Bot — Full Monetization Upgrade",
+    "agent": "Claude Opus 4.6 via Antigravity IDE",
+    "owner": "Denis Shokhirev",
+    "date": "2025-03-09",
+    "estimated_hours": 10,
+    "priority": "SHIP TODAY",
+    "os": "Windows",
+    "ide": "Antigravity",
+    "repo_consult_bot": "https://github.com/DenisShokhirev041279/ger-dennis-ai-consult-bot.git",
+    "repo_cv_tutorials": "https://github.com/DenisShokhirev041279/fun-with-cv-tutorials.git",
+    "deploy_target": "Koyeb (Docker)",
+    "external_services": {
+      "magichour_ai": {
+        "url": "https://magichour.ai",
+        "credits": 2000,
+        "cost": "13 EUR",
+        "capabilities": ["image_generation", "video_generation", "face_swap", "style_transfer"],
+        "note": "ASK DENIS FOR API KEY before using"
+      },
+      "rembg": {
+        "note": "Denis has active key from PrintCard project. ASK DENIS FOR KEY."
+      },
+      "openai": {
+        "models": ["gpt-4.1", "gpt-4o-mini", "dall-e-3"],
+        "note": "Already configured in .env"
+      },
+      "gemini": {
+        "models": ["gemini-1.5-pro"],
+        "note": "Already configured in .env"
+      }
+    }
+  },
+
+  "AGENT_INSTRUCTIONS": {
+    "CRITICAL_RULES": [
+      "BEFORE ANY CODE CHANGE: Read the actual file content first. Do NOT assume file structure from this briefing — VERIFY.",
+      "Run `dir` / `type` to inspect every file you're about to modify.",
+      "The CV repo (fun-with-cv-tutorials) is on GitHub. Do NOT clone it locally — the Windows machine is weak. Use GitHub raw URLs or API to read files if needed. ASK DENIS for his GitHub PAT if you need private repo access.",
+      "ASK DENIS for API keys (MagicHour, rembg, GitHub PAT) BEFORE writing integration code.",
+      "Create feature branches for each task: git checkout -b feature/<task-name>",
+      "Test each feature in isolation before merging.",
+      "All new files follow existing project conventions (aiogram 3, aiosqlite, async/await).",
+      "Keep .env.example updated with any new env vars.",
+      "Do NOT break existing functionality. Run /selftest after each change."
+    ],
+    "AGENTIC_MODE": {
+      "description": "Use sub-agents (parallel tasks in separate terminal sessions) where possible",
+      "strategy": "Fork tasks into independent branches. Sub-agent A works on backend (DB, memory, packages). Sub-agent B works on new features (CV, referral, trial). Sub-agent C works on DevOps (webhook, health, rate-limit). Merge after each is tested.",
+      "coordination": "After each sub-task completion, run /selftest and verify no regressions."
+    }
+  },
+
+  "PHASE_0_AUDIT": {
+    "name": "Project Audit & Verification",
+    "duration": "15 min",
+    "priority": "FIRST",
+    "tasks": [
+      {
+        "id": "0.1",
+        "task": "Full file tree scan",
+        "command": "dir /s /b to get complete file listing",
+        "purpose": "Build accurate mental model of all files. The briefing may be incomplete."
+      },
+      {
+        "id": "0.2",
+        "task": "Read ALL handler files",
+        "files": [
+          "bot/handlers/start.py",
+          "bot/handlers/consult.py",
+          "bot/handlers/menu.py",
+          "bot/handlers/admin.py",
+          "bot/payments/stars.py",
+          "bot/payments/external.py",
+          "bot/payments/bookings.py",
+          "bot/handlers/reference_photo.py",
+          "bot/handlers/selftest.py"
+        ],
+        "purpose": "Understand exact current implementation before making changes"
+      },
+      {
+        "id": "0.3",
+        "task": "Read DB layer completely",
+        "files": ["bot/db.py", "bot/db_helpers.py"],
+        "purpose": "Understand schema, know what tables exist, plan migrations"
+      },
+      {
+        "id": "0.4",
+        "task": "Read AI clients",
+        "files": ["bot/ai/openai_client.py", "bot/ai/gemini_client.py"],
+        "purpose": "Understand how API calls are made, where to add conversation history"
+      },
+      {
+        "id": "0.5",
+        "task": "Read config and i18n",
+        "files": ["bot/config.py", "utils/i18n.py", "bot/prompts/"],
+        "purpose": "Understand config structure, find missing i18n keys"
+      },
+      {
+        "id": "0.6",
+        "task": "Read main.py and states.py",
+        "files": ["main.py", "bot/states.py"],
+        "purpose": "Understand bot startup, router structure, FSM states"
+      },
+      {
+        "id": "0.7",
+        "task": "Check available MCP tools in Antigravity",
+        "command": "Check what MCP servers/tools are available in your environment",
+        "purpose": "Know what you can use for file ops, git, terminal, etc."
+      },
+      {
+        "id": "0.8",
+        "task": "Check .env.example for all current env vars",
+        "purpose": "Know what secrets are already configured"
+      }
+    ]
+  },
+
+  "PHASE_1_FOUNDATION": {
+    "name": "Backend Foundation (No New Features Yet)",
+    "duration": "90 min",
+    "branch": "feature/foundation-upgrade",
+    "tasks": [
+      {
+        "id": "1.1",
+        "task": "Create bot/config/packages.py — Single Source of Truth",
+        "description": "Extract PACKAGES dict from admin.py, stars.py, external.py into one file. Import everywhere. VERIFY the exact PACKAGES structure in each file first — they may differ slightly.",
+        "files_to_modify": ["bot/handlers/admin.py", "bot/payments/stars.py", "bot/payments/external.py"],
+        "files_to_create": ["bot/config/__init__.py", "bot/config/packages.py"],
+        "test": "Run /selftest, verify booking flow still shows correct prices"
+      },
+      {
+        "id": "1.2",
+        "task": "DB Migration: Add conversation_history table",
+        "schema": {
+          "table": "conversation_history",
+          "columns": {
+            "id": "INTEGER PRIMARY KEY AUTOINCREMENT",
+            "user_id": "INTEGER NOT NULL",
+            "session_id": "TEXT",
+            "role": "TEXT NOT NULL CHECK(role IN ('user','assistant','system'))",
+            "content": "TEXT NOT NULL",
+            "tokens_used": "INTEGER DEFAULT 0",
+            "created_at": "TIMESTAMP DEFAULT CURRENT_TIMESTAMP"
+          },
+          "indexes": ["CREATE INDEX idx_conv_user_session ON conversation_history(user_id, session_id)"]
+        },
+        "file_to_modify": "bot/db.py (add to init_db function)",
+        "note": "VERIFY current init_db() structure first. Add table creation alongside existing tables."
+      },
+      {
+        "id": "1.3",
+        "task": "DB Migration: Add referrals table",
+        "schema": {
+          "table": "referrals",
+          "columns": {
+            "id": "INTEGER PRIMARY KEY AUTOINCREMENT",
+            "referrer_id": "INTEGER NOT NULL",
+            "referred_id": "INTEGER NOT NULL UNIQUE",
+            "bonus_granted": "BOOLEAN DEFAULT 0",
+            "referred_subscribed": "BOOLEAN DEFAULT 0",
+            "created_at": "TIMESTAMP DEFAULT CURRENT_TIMESTAMP"
+          }
+        }
+      },
+      {
+        "id": "1.4",
+        "task": "DB Migration: Add analytics_events table",
+        "schema": {
+          "table": "analytics_events",
+          "columns": {
+            "id": "INTEGER PRIMARY KEY AUTOINCREMENT",
+            "user_id": "INTEGER",
+            "event_type": "TEXT NOT NULL",
+            "event_data": "TEXT",
+            "created_at": "TIMESTAMP DEFAULT CURRENT_TIMESTAMP"
+          },
+          "indexes": ["CREATE INDEX idx_events_type ON analytics_events(event_type, created_at)"]
+        }
+      },
+      {
+        "id": "1.5",
+        "task": "DB Migration: Add subscriptions table",
+        "schema": {
+          "table": "subscriptions",
+          "columns": {
+            "id": "INTEGER PRIMARY KEY AUTOINCREMENT",
+            "user_id": "INTEGER NOT NULL",
+            "plan": "TEXT NOT NULL CHECK(plan IN ('starter','pro','business'))",
+            "status": "TEXT DEFAULT 'active' CHECK(status IN ('active','expired','cancelled'))",
+            "daily_limit": "INTEGER NOT NULL",
+            "started_at": "TIMESTAMP DEFAULT CURRENT_TIMESTAMP",
+            "expires_at": "TIMESTAMP NOT NULL",
+            "auto_renew": "BOOLEAN DEFAULT 1"
+          }
+        }
+      },
+      {
+        "id": "1.6",
+        "task": "Create utils/analytics.py — lightweight event tracker",
+        "code_pattern": "async def track(user_id, event_type, data=None): INSERT INTO analytics_events",
+        "events_to_track": [
+          "bot_start", "language_selected", "menu_action",
+          "trial_message", "trial_exhausted", "trial_upsell_shown",
+          "payment_initiated", "payment_completed",
+          "referral_link_generated", "referral_signup",
+          "cv_tool_used", "subscription_created"
+        ]
+      },
+      {
+        "id": "1.7",
+        "task": "Create utils/rate_limiter.py",
+        "description": "Simple in-memory rate limiter using cachetools.TTLCache",
+        "logic": "TTLCache(maxsize=10000, ttl=60). Key = user_id. Value = message count. If count > 15 per minute, return False.",
+        "install": "pip install cachetools (add to requirements.txt)"
+      }
+    ]
+  },
+
+  "PHASE_2_CONVERSATION_MEMORY": {
+    "name": "Conversation Memory — Critical Feature",
+    "duration": "60 min",
+    "branch": "feature/conversation-memory",
+    "depends_on": "PHASE_1 (needs conversation_history table)",
+    "tasks": [
+      {
+        "id": "2.1",
+        "task": "Create bot/db_helpers_memory.py OR extend db_helpers.py",
+        "functions": [
+          "async def save_message(user_id, session_id, role, content, tokens=0)",
+          "async def get_conversation_history(user_id, session_id, max_tokens=4000)",
+          "async def clear_session(user_id, session_id)",
+          "async def get_or_create_session(user_id) -> session_id"
+        ],
+        "note": "VERIFY db_helpers.py structure first. Extend it if small, create new file if it's already crowded."
+      },
+      {
+        "id": "2.2",
+        "task": "Modify openai_client.py to accept messages[] array",
+        "current_behavior": "Sends single user message",
+        "target_behavior": "Accepts full messages array with system prompt + conversation history + current message",
+        "token_budget": "Reserve 4000 tokens for history, trim oldest messages if over budget",
+        "note": "READ openai_client.py first. Preserve fallback logic (gpt-4.1 → gpt-4o-mini)."
+      },
+      {
+        "id": "2.3",
+        "task": "Modify consult.py handler",
+        "changes": [
+          "On each user message: save to conversation_history",
+          "Before calling OpenAI: load history via get_conversation_history()",
+          "Build messages array: [system_prompt] + history + [current_message]",
+          "After AI response: save assistant message to history",
+          "On session end/new session: optionally clear old history"
+        ],
+        "note": "VERIFY consult.py handler structure. It uses FSM states — understand the flow before modifying."
+      },
+      {
+        "id": "2.4",
+        "task": "Add /newsession command",
+        "description": "Allows user to start fresh conversation without old context",
+        "handler": "Clear conversation_history for user, respond with confirmation"
+      }
+    ]
+  },
+
+  "PHASE_3_MONETIZATION_ENGINE": {
+    "name": "Subscription Model + Progressive Trial",
+    "duration": "90 min",
+    "branch": "feature/subscriptions",
+    "depends_on": "PHASE_1 (needs subscriptions table)",
+    "tasks": [
+      {
+        "id": "3.1",
+        "task": "Create bot/config/plans.py — Subscription Plans Definition",
+        "plans": {
+          "starter": {
+            "name_ru": "Starter",
+            "name_en": "Starter",
+            "name_de": "Starter",
+            "price_stars": 1990,
+            "price_eur": 9.90,
+            "daily_limit": 30,
+            "features": ["basic_ai_consult", "basic_cv_analysis", "content_templates"],
+            "duration_days": 30
+          },
+          "pro": {
+            "name_ru": "Pro",
+            "name_en": "Pro",
+            "name_de": "Pro",
+            "price_stars": 5990,
+            "price_eur": 29.90,
+            "daily_limit": 999,
+            "features": ["unlimited_ai", "advanced_cv", "image_generation", "priority_support"],
+            "duration_days": 30
+          },
+          "business": {
+            "name_ru": "Business",
+            "name_en": "Business",
+            "name_de": "Business",
+            "price_stars": 14990,
+            "price_eur": 79.90,
+            "daily_limit": 9999,
+            "features": ["everything_pro", "monthly_consult_30min", "api_access", "custom_prompts"],
+            "duration_days": 30
+          }
+        },
+        "note": "Keep existing one-time packages too (for backward compatibility). Add plans alongside."
+      },
+      {
+        "id": "3.2",
+        "task": "Rewrite trial system — Progressive Value Lock",
+        "current": "3 messages/day hard stop + upsell",
+        "new_logic": {
+          "messages_1_to_5": "Full functionality, full responses",
+          "messages_6_to_10": "Shorter responses (add max_tokens=500 to OpenAI call), no image generation",
+          "messages_11_plus": "Soft upsell message with pricing, 1 more free message per upsell view (max 3 bonus)",
+          "daily_reset": true
+        },
+        "file_to_modify": "VERIFY where trial logic lives (likely consult.py or db_helpers.py)"
+      },
+      {
+        "id": "3.3",
+        "task": "Create bot/handlers/subscribe.py — Subscription purchase flow",
+        "flow": [
+          "User taps 'Subscribe' in menu → shows 3 plans (inline keyboard)",
+          "User selects plan → shows payment options (Stars / External)",
+          "Stars payment → XTR invoice (reuse existing stars.py pattern)",
+          "External payment → reuse existing external.py pattern",
+          "On payment confirmed → INSERT into subscriptions table",
+          "Admin notification of new subscriber"
+        ]
+      },
+      {
+        "id": "3.4",
+        "task": "Create middleware or helper: check_subscription(user_id)",
+        "returns": {
+          "has_subscription": "bool",
+          "plan": "starter|pro|business|null",
+          "daily_remaining": "int",
+          "features": "list"
+        },
+        "usage": "Called before every AI interaction to determine limits and features"
+      },
+      {
+        "id": "3.5",
+        "task": "Update main menu keyboard",
+        "add_buttons": ["Subscribe / My Plan", "Refer a Friend"],
+        "note": "VERIFY menu.py structure first. Add buttons to existing reply keyboard."
+      },
+      {
+        "id": "3.6",
+        "task": "Add watermark to free-tier AI responses",
+        "implementation": "Append '— Powered by Ger Dennis AI | @ger_dennis_ai' to every free-tier response",
+        "purpose": "Viral marketing. Paid users don't see watermark."
+      }
+    ]
+  },
+
+  "PHASE_4_REFERRAL_SYSTEM": {
+    "name": "Referral & Viral Growth Engine",
+    "duration": "45 min",
+    "branch": "feature/referrals",
+    "depends_on": "PHASE_1 (needs referrals table)",
+    "tasks": [
+      {
+        "id": "4.1",
+        "task": "Create bot/handlers/referral.py",
+        "features": [
+          "Generate unique referral link: t.me/<bot_username>?start=ref_<user_id>",
+          "Handle /start with ref_ parameter (modify start.py)",
+          "Save referral relationship to DB",
+          "Grant bonus: +5 free messages to referrer immediately",
+          "If referred user subscribes: +10% of first payment as bonus Stars to referrer",
+          "Show referral stats: 'You referred X people, earned Y bonus messages'"
+        ]
+      },
+      {
+        "id": "4.2",
+        "task": "Modify start.py to handle referral deep links",
+        "logic": "Parse start payload. If starts with 'ref_', extract referrer_id, save to referrals table, welcome referred user with special message.",
+        "note": "VERIFY current /start handler logic first."
+      },
+      {
+        "id": "4.3",
+        "task": "Add referral nudge after positive interactions",
+        "logic": "After every 5th AI response, if user has no referral link generated yet, show: 'Love this? Share with a friend and get 5 free bonus messages!'",
+        "purpose": "Organic viral loop"
+      }
+    ]
+  },
+
+  "PHASE_5_CV_TOOLS": {
+    "name": "Computer Vision Power Features",
+    "duration": "90 min",
+    "branch": "feature/cv-tools",
+    "CRITICAL_NOTE": "ASK DENIS: 1) GitHub PAT for private CV repo access. 2) Which CV scripts are most ready to use? 3) MagicHour API key.",
+    "tasks": [
+      {
+        "id": "5.1",
+        "task": "Create bot/handlers/cv_tools.py — CV Tools Menu",
+        "menu_items": [
+          {
+            "name": "Brand Audit",
+            "icon": "🎨",
+            "description_ru": "Загрузите фото логотипа или скрин сайта — получите AI-анализ",
+            "description_en": "Upload logo or website screenshot — get AI visual analysis",
+            "flow": "User uploads image → Gemini Vision analyzes (colors, composition, style) → structured report"
+          },
+          {
+            "name": "Product Photo Pro",
+            "icon": "📸",
+            "description_ru": "Улучшите фото товара для соцсетей",
+            "description_en": "Enhance product photo for social media",
+            "flow": "User uploads product photo → rembg removes background → CV enhances → optional DALL-E/MagicHour background generation"
+          },
+          {
+            "name": "Social Media Kit",
+            "icon": "📱",
+            "description_ru": "Одно фото → готовые форматы для всех соцсетей",
+            "description_en": "One photo → ready formats for all social media",
+            "flow": "User uploads photo → Pillow/CV crops to Instagram Story (9:16), Feed (1:1), Facebook Cover (820x312), YouTube Thumb (1280x720)"
+          },
+          {
+            "name": "AI Video (MagicHour)",
+            "icon": "🎬",
+            "description_ru": "Создайте короткое видео из фото",
+            "description_en": "Create short video from photo",
+            "flow": "User uploads photo → MagicHour API animates → returns short video",
+            "tier": "pro_only"
+          }
+        ]
+      },
+      {
+        "id": "5.2",
+        "task": "Implement Brand Audit (FREE — lead magnet)",
+        "implementation": {
+          "step1": "Receive user photo via aiogram message handler",
+          "step2": "Send to Gemini Vision with prompt: 'Analyze this brand visual. Evaluate: color palette (list hex codes), typography impression, composition balance, overall brand perception, competitive positioning. Rate 1-10. Give 3 actionable improvements.'",
+          "step3": "Format response as structured report",
+          "step4": "Append watermark for free users",
+          "step5": "Track event: cv_tool_used, type=brand_audit"
+        },
+        "access": "FREE for all users (lead magnet)",
+        "note": "This uses existing Gemini client. VERIFY gemini_client.py supports image input."
+      },
+      {
+        "id": "5.3",
+        "task": "Implement Product Photo Pro (FREE basic / PRO advanced)",
+        "implementation": {
+          "free_tier": "Background removal only (rembg) + basic tips",
+          "pro_tier": "Background removal + 3 AI-generated background options (DALL-E or MagicHour)",
+          "dependencies": ["rembg (already have key)", "Pillow", "aiohttp for MagicHour API"]
+        },
+        "note": "VERIFY reference_photo.py — it already has similar flow. Reuse patterns."
+      },
+      {
+        "id": "5.4",
+        "task": "Implement Social Media Kit (FREE basic / PRO with text overlay)",
+        "implementation": {
+          "free_tier": "Auto-crop to 3 formats (Story, Feed, Cover)",
+          "pro_tier": "All formats + text overlay + brand colors applied",
+          "library": "Pillow (PIL) — pure Python, no heavy deps, works on weak Windows"
+        }
+      },
+      {
+        "id": "5.5",
+        "task": "Integrate MagicHour API for AI Video",
+        "api_docs": "https://magichour.ai — ASK DENIS FOR API KEY AND CHECK DOCS",
+        "flow": "POST image → get video URL → send to user via Telegram",
+        "tier": "PRO only (uses paid credits)",
+        "note": "If API docs not available, create placeholder handler that asks Denis for API details"
+      }
+    ]
+  },
+
+  "PHASE_6_DEVOPS": {
+    "name": "Production Hardening",
+    "duration": "45 min",
+    "branch": "feature/devops-upgrade",
+    "tasks": [
+      {
+        "id": "6.1",
+        "task": "Switch from polling to webhook",
+        "implementation": {
+          "add": "aiohttp web server in main.py",
+          "webhook_path": "/webhook/<BOT_TOKEN> (use token as path for security)",
+          "health_endpoint": "GET /health → 200 OK + JSON {status: ok, db: ok, uptime: X}",
+          "koyeb_config": "Set WEBHOOK_URL env var, Koyeb health check to /health"
+        },
+        "note": "VERIFY main.py current polling setup. aiogram 3 has built-in webhook support."
+      },
+      {
+        "id": "6.2",
+        "task": "Add rate limiting middleware",
+        "implementation": "Import rate_limiter from Phase 1. Add as aiogram middleware. If rate exceeded, respond with 'Slow down! Max 15 messages per minute.'",
+        "file": "main.py or create bot/middleware/rate_limit.py"
+      },
+      {
+        "id": "6.3",
+        "task": "Update Dockerfile",
+        "changes": [
+          "Add new pip dependencies (cachetools, etc.)",
+          "Expose port for webhook (8080)",
+          "Health check instruction"
+        ],
+        "note": "VERIFY current Dockerfile first."
+      },
+      {
+        "id": "6.4",
+        "task": "Update .env.example with all new env vars",
+        "new_vars": [
+          "WEBHOOK_URL=",
+          "WEBHOOK_PORT=8080",
+          "MAGICHOUR_API_KEY=",
+          "REMBG_API_KEY=",
+          "GITHUB_PAT="
+        ]
+      },
+      {
+        "id": "6.5",
+        "task": "Complete DE i18n — fill ALL missing German keys",
+        "method": "Compare RU and EN sections, find every key missing in DE, translate.",
+        "note": "VERIFY i18n.py — read the full file, list all keys per language, find gaps."
+      }
+    ]
+  },
+
+  "PHASE_7_POLISH_AND_SHIP": {
+    "name": "Final Polish & Deploy",
+    "duration": "30 min",
+    "branch": "main (merge all features)",
+    "tasks": [
+      {
+        "id": "7.1",
+        "task": "Update /selftest to cover new features",
+        "add_checks": [
+          "Conversation history table exists",
+          "Subscriptions table exists",
+          "Referrals table exists",
+          "Analytics events table exists",
+          "Webhook endpoint responds",
+          "Rate limiter works",
+          "MagicHour API key present (if configured)"
+        ]
+      },
+      {
+        "id": "7.2",
+        "task": "Update README.md",
+        "sections": [
+          "New features list",
+          "Subscription plans overview",
+          "Referral system description",
+          "CV Tools description",
+          "Updated deployment instructions (webhook)",
+          "New env vars documentation"
+        ]
+      },
+      {
+        "id": "7.3",
+        "task": "Merge all feature branches to main",
+        "order": [
+          "feature/foundation-upgrade",
+          "feature/conversation-memory",
+          "feature/subscriptions",
+          "feature/referrals",
+          "feature/cv-tools",
+          "feature/devops-upgrade"
+        ],
+        "after_merge": "Run full /selftest. Fix any conflicts."
+      },
+      {
+        "id": "7.4",
+        "task": "Git push and deploy",
+        "commands": ["git add -A", "git commit -m 'v2.0: Subscriptions, CV Tools, Referrals, Memory'", "git push origin main"],
+        "then": "Redeploy on Koyeb with new env vars"
+      }
+    ]
+  },
+
+  "ASK_DENIS_CHECKLIST": {
+    "description": "Questions the agent MUST ask Denis before proceeding with certain tasks",
+    "questions": [
+      {
+        "when": "Before PHASE_5 (CV Tools)",
+        "question": "Denis, please provide: 1) Your GitHub Personal Access Token (PAT) to read the private fun-with-cv-tutorials repo. 2) Your MagicHour API key. 3) Your rembg API key from the PrintCard project.",
+        "why": "Need keys to integrate CV features and MagicHour video generation."
+      },
+      {
+        "when": "Before PHASE_5.5 (MagicHour)",
+        "question": "Denis, I need to check MagicHour API documentation. Can you share the API docs link or tell me: what endpoints are available, what's the request format, what credit cost per operation?",
+        "why": "Need to know exact API structure to build integration."
+      },
+      {
+        "when": "Before PHASE_6.1 (Webhook)",
+        "question": "Denis, what is your Koyeb app URL? I need it to configure WEBHOOK_URL.",
+        "why": "Webhook URL must match the deployed domain."
+      },
+      {
+        "when": "Before PHASE_3 (Subscriptions)",
+        "question": "Denis, confirm subscription pricing: Starter 1990★/€9.90, Pro 5990★/€29.90, Business 14990★/€79.90 per month. OK?",
+        "why": "Pricing should be your business decision, not the agent's."
+      },
+      {
+        "when": "If fun-with-cv-tutorials has useful scripts",
+        "question": "Denis, I found these CV scripts in your repo: [list]. Which ones are production-ready and which are experiments? I want to integrate only the solid ones.",
+        "why": "Don't want to ship broken CV features."
+      }
+    ]
+  },
+
+  "SUB_AGENT_ALLOCATION": {
+    "description": "How to split work across parallel sub-agents in Antigravity",
+    "agent_A": {
+      "name": "Backend Engineer",
+      "focus": "Database, memory, packages, config",
+      "phases": ["PHASE_0_AUDIT", "PHASE_1_FOUNDATION", "PHASE_2_CONVERSATION_MEMORY"],
+      "branch": "feature/foundation-upgrade → feature/conversation-memory"
+    },
+    "agent_B": {
+      "name": "Product Engineer",
+      "focus": "Subscriptions, trial, referrals, monetization",
+      "phases": ["PHASE_3_MONETIZATION_ENGINE", "PHASE_4_REFERRAL_SYSTEM"],
+      "branch": "feature/subscriptions → feature/referrals",
+      "depends_on": "Agent A completing PHASE_1 (needs DB tables)"
+    },
+    "agent_C": {
+      "name": "Feature Engineer",
+      "focus": "CV tools, MagicHour, visual features",
+      "phases": ["PHASE_5_CV_TOOLS"],
+      "branch": "feature/cv-tools",
+      "depends_on": "Denis providing API keys"
+    },
+    "agent_D": {
+      "name": "DevOps Engineer",
+      "focus": "Webhook, rate limiting, i18n, deployment",
+      "phases": ["PHASE_6_DEVOPS", "PHASE_7_POLISH_AND_SHIP"],
+      "branch": "feature/devops-upgrade",
+      "depends_on": "All other agents completing their phases"
+    }
+  },
+
+  "FILE_STRUCTURE_TARGET": {
+    "description": "Expected file structure after all phases complete",
+    "new_files": [
+      "bot/config/__init__.py",
+      "bot/config/packages.py",
+      "bot/config/plans.py",
+      "bot/handlers/subscribe.py",
+      "bot/handlers/referral.py",
+      "bot/handlers/cv_tools.py",
+      "bot/middleware/__init__.py",
+      "bot/middleware/rate_limit.py",
+      "utils/analytics.py",
+      "utils/rate_limiter.py"
+    ],
+    "modified_files": [
+      "main.py — webhook + middleware + new routers",
+      "bot/db.py — new tables in init_db()",
+      "bot/db_helpers.py — new helper functions (or separate files)",
+      "bot/ai/openai_client.py — conversation history support",
+      "bot/handlers/start.py — referral deep links",
+      "bot/handlers/consult.py — memory + progressive trial + analytics",
+      "bot/handlers/menu.py — new menu buttons",
+      "bot/handlers/admin.py — import from config/packages.py",
+      "bot/handlers/selftest.py — new checks",
+      "bot/payments/stars.py — import from config/packages.py + subscription payments",
+      "bot/payments/external.py — import from config/packages.py + subscription payments",
+      "utils/i18n.py — complete DE translations + new keys",
+      "requirements.txt — new dependencies",
+      "Dockerfile — webhook port + new deps",
+      ".env.example — new env vars",
+      "README.md — updated docs"
+    ]
+  }
+}

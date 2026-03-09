@@ -95,3 +95,31 @@ async def merge_reference_photos(image_paths: list[str], user_prompt: str = "") 
         for img in pil_images:
             if hasattr(img, 'close'):
                 img.close()
+
+async def brand_audit(image_path: str) -> str:
+    """Analyzes an image to provide a brand audit using Gemini Vision."""
+    if not GEMINI_API_KEY:
+        return "⚠️ Gemini API key is missing."
+
+    try:
+        import PIL.Image
+        img = PIL.Image.open(image_path)
+        
+        model = genai.GenerativeModel('gemini-1.5-pro')
+        prompt = (
+            "You are a top-tier Brand Strategist and Marketing Director. "
+            "Please perform a critical Brand Audit on this image. "
+            "Analyze the visual identity, color palette, typography, composition, and emotional impact. "
+            "Provide actionable suggestions for improvement in 3-4 short, punchy paragraphs."
+        )
+        
+        loop = asyncio.get_event_loop()
+        response = await loop.run_in_executor(None, lambda: model.generate_content([img, prompt]))
+        
+        if hasattr(img, 'close'):
+            img.close()
+            
+        return response.text
+    except Exception as e:
+        logger.exception("Brand Audit failed.")
+        return f"❌ Analysis failed: {e}"

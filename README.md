@@ -14,16 +14,22 @@ See [koyeb.md](koyeb.md) for 1-click deployment steps.
 - **Hardened Rules**: System prompts strictly forbid unmasking secrets or admin roleplay.
 - **Secrets Management**: `.env` driven. No hardcoded keys.
 
-## 💰 Payments
-- **Telegram Stars**: Native XTR invoices.
-- **External**: Fiat/Crypto instructions with Admin Approval workflow.
+## 💰 Subscriptions & Monetization
+- **Starter (1990 Stars/mo)**: 30 daily requests.
+- **Pro (5990 Stars/mo)**: Unlimited AI, CV Tools (MagicHour).
+- **Business (14990 Stars/mo)**: All above + custom prompt logic.
+- **Referrals**: Users can invite friends via deep links (`/start ref_ID`) to earn bonus messages.
+- Payments handled natively via Telegram Stars XTR invoices or External logic.
 
-## 🧩 Reference Photo (Gemini Vision)
-- **Usage**: Send 2-14 photos via "🧩 Reference Photo" menu to get a merged concept.
-- **Tech**: Uses Gemini to analyze and DALL-E 3 to generate.
-- **Limits**: Trial users limited by `TRIAL_LIMIT_PER_DAY`.
+## ⚖️ Progressive Trial System
+- **Free Users**: Get 5 full messages, 5 shortened messages, then an upsell screen. Bonus credits can extend this.
+- non-subscribers have an AI watermark appended.
 
-## ⚖️ Trial System
-- **Free Users**: Limited to `TRIAL_MAX_MESSAGES` per day.
-- **Paid Users**: Unlimited access for session duration.
-- **Hard Stop**: After limit, user must buy a package.
+## 🧩 Reference Photo / CV Tools
+- Support for Image/Video generation and background removal via MagicHour & Gemini Vision.
+- Accessed via the "AI Tools" menu (Requires Pro/Business).
+
+## ☁️ Deployment & Webhook
+- Operates on `aiohttp` webhooks on port 8080.
+- Check `/health` endpoint for Koyeb/Docker liveness probes.
+- Requires `WEBHOOK_URL` in `.env`.

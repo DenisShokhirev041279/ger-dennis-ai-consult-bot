@@ -14,83 +14,93 @@ async def consult_handler(message: Message, state: FSMContext):
     user_id = message.from_user.id
     
     if not message.text:
-        await message.answer("Please send text.")
         return
     
+    # Rate Limiter
+    from utils.rate_limiter import is_rate_limited
+    if is_rate_limited(user_id):
+        await message.answer("⚠️ Too many messages. Please wait a minute.")
+        return
+
     # Get user language early
     user_lang = await get_user_lang(user_id)
 
-    # Check Session
-    session = await get_session_info(user_id)
-    # session: (start_time, duration_minutes, is_active)
+    # Check Subscription
+    from utils.subscription import check_subscription
+    sub_data = await check_subscription(user_id)
+    is_paid = sub_data["has_subscription"]
+    mode = "paid" if is_paid else "trial"
     
-    is_paid = False
+    msg_count, _ = await get_trial_usage_today(user_id)
     
-    if session and session[2]:
-        start_time = session[0]
-        duration_minutes = session[1]
-        elapsed_minutes = (int(time.time()) - start_time) / 60
-        
-        if elapsed_minutes >= duration_minutes:
-            await end_session(user_id)
-            await message.answer(get_text(user_lang, "session_ended"))
-            await state.clear()
-            # Fallthrough to trial check? No, session just ended.
-            # But user might want to continue in trial if available? 
-            # Request says "HARD STOP" if trial exhausted. 
-            # Let's treat ended session as "no active session" for next message.
-            # For THIS message, just say ended.
-            return
-        
-        is_paid = True
-        remaining = int(duration_minutes - elapsed_minutes)
-    
-    # TRIAL MODE LOGIC
+    # PROGRESSIVE TRIAL LOGIC
     if not is_paid:
-        from utils.config import TRIAL_LIMIT_PER_DAY, TRIAL_MAX_MESSAGES
-        from utils.db_helpers import get_trial_usage_today, increment_trial_messages
-        from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
-
-        msg_count, _ = await get_trial_usage_today(user_id)
+        from utils.config import TRIAL_MAX_MESSAGES
         
-        if msg_count >= TRIAL_MAX_MESSAGES:
-            # Hard stop + Upsell
+        # Determine if we should allow based on total msg count and bonuses
+        # Assume base trial is 10 messages (1-5 full, 6-10 short)
+        # 11+ requires upsell OR bonus credit
+        from utils.db_helpers import get_bonus_credits, update_bonus_credits
+        bonus = await get_bonus_credits(user_id)
+        
+        total_allowed = 10 + bonus
+        
+        if msg_count >= total_allowed:
+            # Upsell
+            from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
             kb = InlineKeyboardMarkup(inline_keyboard=[
-                [InlineKeyboardButton(text=get_text(user_lang, "menu_book"), callback_data="book_start")],
-                [InlineKeyboardButton(text=get_text(user_lang, "menu_portfolio"), callback_data="portfolio")],
-                [InlineKeyboardButton(text=get_text(user_lang, "menu_channel"), url="https://t.me/ger_dennis")] 
+                [InlineKeyboardButton(text="⭐ Subscribe / My Plan", callback_data="subscribe_menu")],
+                [InlineKeyboardButton(text="🤝 Refer a Friend (+1 msg)", callback_data="menu_referrals")]
             ])
-            await message.answer(get_text(user_lang, "trial_ended"), reply_markup=kb)
+            await message.answer("TRIAL EXHAUSTED. Please subscribe or refer a friend.", reply_markup=kb)
             return
             
-        # Increment usage
+        if msg_count >= 10:
+            # Using bonus credit
+            await update_bonus_credits(user_id, -1)
+            from utils.analytics import track
+            await track(user_id, "bonus_credit_used")
+        
         await increment_trial_messages(user_id)
         
     # Check Security
     from utils.security import is_prompt_injection, sanitize_user_input
-    
     user_input = sanitize_user_input(message.text)
-    
     if is_prompt_injection(user_input):
         await message.answer("⚠️ Security Alert: Valid consultation topic required.")
         return
 
-    processing_msg = await message.answer(get_text(user_lang, "processing") if user_lang else "...")
+    # Conversation Memory
+    from utils.db_helpers_memory import save_message, get_conversation_history, get_current_session_id
+    session_id = await get_current_session_id(user_id)
     
-    # Call AI with mode
-    mode = "paid" if is_paid else "trial"
-    response = await get_ai_response(user_input, user_lang, mode=mode)
+    # Get history
+    history = await get_conversation_history(user_id, session_id, limit=20)
     
-    # Append time notice if low (only paid)
-    if is_paid and remaining <= 5 and remaining > 0:
-        response += f"\n\n⏳ {get_text(user_lang, 'time_left', minutes=remaining)}"
+    # Add current message to DB
+    await save_message(user_id, session_id, "user", message.text)
     
-    # Append upsell if trial (maybe on last message?)
+    # Prepare history for AI
+    current_messages = history + [{"role": "user", "content": message.text}]
+
+    processing_msg = await message.answer(get_text(user_lang, "processing"))
+    
+    # Call AI with mode and history
+    # Progressive trial system for AI prompt
+    if not is_paid and msg_count >= 5: # (0-indexed effectively since we just incremented, actually msg_count was fetched BEFORE increment)
+        mode = "trial_short"
+    
+    response = await get_ai_response(lang=user_lang, mode=mode, messages=current_messages)
+    
+    # Watermark for non-subscribers
     if not is_paid:
-        # Check if this was the last allowed message
-        if msg_count + 1 >= TRIAL_MAX_MESSAGES: # +1 because we just incremented
-             # Actually we incremented in DB but local var msg_count is old.
-             # Let's just add a footer seeing as they used a trial slot.
-             pass 
+        response += "\n\n— Powered by Ger Dennis AI | @ger_dennis_ai"
+        
+    # Save Assistant Response
+    await save_message(user_id, session_id, "assistant", response)
+
+    # Analytics
+    from utils.analytics import track
+    await track(user_id, "consultation_message", {"mode": mode, "is_paid": is_paid})
 
     await processing_msg.edit_text(response)

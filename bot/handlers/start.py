@@ -8,8 +8,22 @@ from utils.db import set_user_lang
 
 router = Router()
 
+from aiogram.filters import CommandStart, CommandObject
+from utils.db_referrals import add_referral
+
 @router.message(CommandStart())
-async def cmd_start(message: Message, state: FSMContext):
+async def cmd_start(message: Message, command: CommandObject, state: FSMContext):
+    # Capture referral
+    referrer_id = None
+    if command.args and command.args.startswith("ref_"):
+        try:
+            referrer_id = int(command.args.split("_")[1])
+        except (ValueError, IndexError):
+            pass
+
+    if referrer_id:
+        await add_referral(referrer_id, message.from_user.id)
+
     # Reset state
     await state.clear()
     

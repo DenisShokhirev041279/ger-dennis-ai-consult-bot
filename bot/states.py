@@ -8,3 +8,9 @@ class UserStates(StatesGroup):
     WAIT_FOR_PAYMENT = State()
     CONSULT_MODE = State()
     REF_PHOTO_COLLECT = State()
+
+    # CV Tools States
+    CV_BRAND_AUDIT = State()
+    CV_PRODUCT_PHOTO = State()
+    CV_SOCIAL_KIT = State()
+    CV_AI_VIDEO = State()

@@ -8,11 +8,7 @@ from utils.logger import logger
 
 router = Router()
 
-PACKAGES = {
-    "pkg_30": {"amount": 4950, "duration": 30, "title": "30 min Consult"},
-    "pkg_60": {"amount": 8950, "duration": 60, "title": "60 min Strategy"},
-    "pkg_audit": {"amount": 24950, "duration": 120, "title": "Full Audit"} # Assuming 2 hours for audit
-}
+from bot.config.packages import PACKAGES
 
 @router.callback_query(F.data == "pay_stars")
 async def pay_stars_start(callback: CallbackQuery, state: FSMContext):
@@ -24,10 +20,10 @@ async def pay_stars_start(callback: CallbackQuery, state: FSMContext):
         await callback.answer("Error: Package not found")
         return
 
-    prices = [LabeledPrice(label=pkg["title"], amount=pkg["amount"])]
+    prices = [LabeledPrice(label=pkg["title_en"], amount=pkg["amount_stars"])]
     await callback.message.answer_invoice(
-        title=pkg["title"],
-        description=f"Unlocks {pkg['duration']} minutes of AI consultation.",
+        title=pkg["title_en"],
+        description=get_text(await get_user_lang(callback.from_user.id), "session_unlocked"), # Generic or more specific later
         payload=f"stars:{pkg_key}:{callback.from_user.id}",
         provider_token=None,
         currency="XTR",

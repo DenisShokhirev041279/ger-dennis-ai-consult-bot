@@ -3,3 +3,8 @@ python-dotenv
 openai>=1.0.0
 aiosqlite
 google-generativeai>=0.4.0
+cachetools
+magic-hour
+Pillow
+aiohttp
+numpy

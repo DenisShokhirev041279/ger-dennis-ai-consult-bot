@@ -100,4 +100,51 @@ async def selftest(message: Message):
     except Exception as e:
         results.append(f"❌ Trial Stats: ERROR - {e}")
     
+    # DB Tables Verification
+    try:
+        import aiosqlite
+        from utils.db import DB_PATH
+        async with aiosqlite.connect(DB_PATH) as db:
+            async with db.execute("SELECT name FROM sqlite_master WHERE type='table'") as cursor:
+                tables = [row[0] for row in await cursor.fetchall()]
+        
+        expected_tables = ["users", "sessions", "trial_usage", "payment_claims", "conversation_history", "subscriptions", "referrals", "analytics_events"]
+        missing_tables = [t for t in expected_tables if t not in tables]
+        if missing_tables:
+            results.append(f"❌ DB Tables Missing: {', '.join(missing_tables)}")
+        else:
+            results.append("✅ DB Tables: All required tables exist")
+    except Exception as e:
+        results.append(f"❌ DB Tables: ERROR - {e}")
+
+    # Webhook Check
+    webhook_url = os.getenv("WEBHOOK_URL")
+    if webhook_url:
+        results.append(f"✅ Webhook: Configured ({webhook_url})")
+    else:
+        results.append("⚠️ Webhook: Not configured (Polling mode presumably)")
+
+    # Rate Limiter Check
+    from utils.rate_limiter import RATE_LIMIT_CACHE
+    if RATE_LIMIT_CACHE is not None:
+        results.append("✅ Rate Limiter: Active")
+    else:
+        results.append("❌ Rate Limiter: ERROR")
+
+    # MagicHour API Key Check
+    if os.getenv("MAGIC_HOUR_API_KEY"):
+        results.append("✅ MagicHour API Key: Present")
+    else:
+        results.append("⚠️ MagicHour API Key: Missing (CV Tools disabled)")
+
+    # i18n DE Translation Check
+    from utils.i18n import STRINGS
+    en_keys = set(STRINGS.get("en", {}).keys())
+    de_keys = set(STRINGS.get("de", {}).keys())
+    missing_de = en_keys - de_keys
+    if missing_de:
+        results.append(f"⚠️ i18n DE: Missing {len(missing_de)} keys ({', '.join(list(missing_de)[:3])}...)")
+    else:
+        results.append("✅ i18n DE: All keys present compared to EN")
+
     await message.answer("\n".join(results))

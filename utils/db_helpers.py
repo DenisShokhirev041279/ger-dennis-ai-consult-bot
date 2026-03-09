@@ -102,3 +102,18 @@ async def reset_user_data(user_id: int):
         # Clear payment claims
         await db.execute("DELETE FROM payment_claims WHERE user_id = ?", (user_id,))
         await db.commit()
+async def get_bonus_credits(user_id: int) -> int:
+    """Get remaining bonus credits for user."""
+    async with aiosqlite.connect(DB_PATH) as db:
+        async with db.execute("SELECT bonus_credits FROM users WHERE user_id = ?", (user_id,)) as cursor:
+            row = await cursor.fetchone()
+            return row[0] if row and row[0] is not None else 0
+
+async def update_bonus_credits(user_id: int, delta: int):
+    """Increment or decrement bonus credits."""
+    async with aiosqlite.connect(DB_PATH) as db:
+        await db.execute("""
+            UPDATE users SET bonus_credits = COALESCE(bonus_credits, 0) + ?
+            WHERE user_id = ?
+        """, (delta, user_id))
+        await db.commit()

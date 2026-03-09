@@ -10,11 +10,7 @@ from utils.logger import logger
 
 router = Router()
 
-PACKAGES = {
-    "pkg_30": {"duration": 30},
-    "pkg_60": {"duration": 60},
-    "pkg_audit": {"duration": 120}
-}
+from bot.config.packages import PACKAGES
 
 @router.callback_query(F.data.startswith("approve_"))
 async def admin_approve_claim(callback: CallbackQuery, bot: Bot):

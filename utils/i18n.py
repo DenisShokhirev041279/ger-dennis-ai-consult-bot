@@ -57,7 +57,15 @@ STRINGS = {
         "session_ended": "Сессия завершена. Спасибо! Если нужно больше времени, забронируйте новый слот.",
         "access_denied": "Пожалуйста, сначала забронируйте консультацию.",
         "time_left": "Осталось {minutes} минут.",
-        "processing": "Обрабатываю..."
+        "processing": "Обрабатываю...",
+        "payment_pending": "Заявка на оплату отправлена. Ожидается подтверждение администратора.",
+        "payment_approved": "✅ Оплата подтверждена! Сессия активирована.",
+        "payment_rejected": "❌ Оплата отклонена. Пожалуйста, предоставьте чек (скриншот/txid) и попробуйте снова.",
+        "trial_ended": "Лимит тестовых сообщений на сегодня исчерпан. Для продолжения забронируйте консультацию.",
+        "ref_photo_intro": "Отправьте от 2 до 14 референсных фото. Затем отправьте /done. Отмена: /cancel. Можно добавить текстовое описание.",
+        "ref_photo_error_count": "Пожалуйста, отправьте от 2 до 14 фото.",
+        "ref_photo_done": "Обработка ваших фото... (Это может занять минуту)",
+        "ref_photo_limit": "Дневной лимит референсных фото исчерпан. Пожалуйста, забронируйте сессию."
     },
     "de": {
         "welcome": "Willkommen! Ich bin Dennis, AI Systems Architect. Bitte wählen Sie eine Option:",
@@ -78,8 +86,20 @@ STRINGS = {
         "crypto_instruct": "Bitte senden Sie {amount} an:\nUSDT (TRC20): {usdt}\nTON: {ton}\n\nKommentar: {ref}\n\nKlicken Sie auf 'Ich habe bezahlt', wenn fertig.",
         "i_paid": "Ich habe bezahlt",
         "admin_alert": "Neue Zahlungsanforderung von {user_id} ({username}).\nRef: {ref}\nBetrag: {amount}",
+        "payment_success": "Zahlung erfolgreich! Beratungs-Session freigeschaltet.",
+        "session_unlocked": "Session freigeschaltet. Sie können nun frei mit mir chatten. Die Zeit läuft ab jetzt.",
+        "session_ended": "Session beendet. Vielen Dank! Wenn Sie mehr Zeit benötigen, buchen Sie bitte einen weiteren Termin.",
+        "access_denied": "Bitte buchen Sie zuerst eine Beratung.",
+        "time_left": "{minutes} Minuten verbleibend.",
+        "processing": "Wird bearbeitet...",
+        "payment_pending": "Zahlungsanforderung eingereicht. Admin-Genehmigung erforderlich.",
+        "payment_approved": "✅ Zahlung genehmigt! Session aktiviert.",
         "payment_rejected": "❌ Zahlung abgelehnt. Bitte Nachweis (Screenshot/txid) vorlegen und erneut versuchen.",
-        "trial_ended": "Testlimit für heute erreicht. Um fortzufahren, buchen Sie bitte eine Beratung."
+        "trial_ended": "Testlimit für heute erreicht. Um fortzufahren, buchen Sie bitte eine Beratung.",
+        "ref_photo_intro": "Senden Sie 2-14 Referenzfotos. Senden Sie dann /done. Abbrechen: /cancel. Sie können Textkontext hinzufügen.",
+        "ref_photo_error_count": "Bitte senden Sie zwischen 2 und 14 Fotos.",
+        "ref_photo_done": "Ihre Fotos werden zusammengeführt... (Dies kann eine Minute dauern)",
+        "ref_photo_limit": "Tägliches Limit für Referenzfotos erreicht. Bitte buchen Sie eine Session."
     }
 }
 

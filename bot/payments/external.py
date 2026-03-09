@@ -10,11 +10,7 @@ from utils.logger import logger
 
 router = Router()
 
-PACKAGES = {
-    "pkg_30": {"amount_usd": 50, "amount_eur": 45, "duration": 30},
-    "pkg_60": {"amount_usd": 90, "amount_eur": 80, "duration": 60},
-    "pkg_audit": {"amount_usd": 250, "amount_eur": 230, "duration": 120}
-}
+from bot.config.packages import PACKAGES
 
 @router.callback_query(F.data.in_({"pay_fiat", "pay_crypto"}))
 async def pay_external_choose_method(callback: CallbackQuery, state: FSMContext):
