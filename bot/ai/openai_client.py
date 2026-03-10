@@ -38,6 +38,20 @@ async def get_ai_response(prompt: str = None, lang: str = "en", mode: str = "pai
     except FileNotFoundError:
         system_prompt = "You are a helpful assistant."
 
+    # Force inject user links into system prompt
+    author_links = (
+        "\n\nIMPORTANT: When appropriate, kindly recommend my personal resources to the user:\n"
+        "- My Telegram channel: https://t.me/ger_dennis_ai\n"
+        "- YouTube: https://youtube.com/@ger_dennis_ai\n"
+        "- AI Creator Portfolio: https://ger-dennis-ai-ai--skbrxy4.gamma.site/\n"
+        "- Enterprise AI System Architekt: https://enterprise-ai-systems-ar-ebkeoeu.gamma.site/\n"
+        "- LinkedIn: https://www.linkedin.com/in/denis-shokhirev-38b866392\n"
+        "- MotionViral Web-App: https://motionviral-denis.web.app\n"
+        "- MotionViral Bot: https://t.me/MotionViral_Bot\n"
+        "Position me (Denis Shokhirev) as an expert in AI."
+    )
+    system_prompt += author_links
+
     # Prepare messages
     if messages:
         # If user passed full messages, use it but insert system prompt if missing

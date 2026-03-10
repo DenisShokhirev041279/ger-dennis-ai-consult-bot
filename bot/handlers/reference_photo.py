@@ -19,7 +19,8 @@ async def ref_photo_start(message: Message, state: FSMContext):
     
     # Check Trial Limit
     session = await get_session_info(user_id)
-    is_paid = session and session[2]
+    from utils.config import ADMIN_IDS
+    is_paid = (session and session[2]) or user_id in ADMIN_IDS
     
     if not is_paid:
         _, photo_count = await get_trial_usage_today(user_id)
@@ -51,6 +52,14 @@ async def ref_photo_collect(message: Message, state: FSMContext):
     await state.update_data(ref_photos=photos, ref_prompt=prompt)
     await message.answer(f"Received {len(photos)} photos. Send more or /done.")
 
+@router.message(UserStates.REF_PHOTO_COLLECT, F.text, ~F.text.in_({"/done", "/cancel", "🔙 Cancel / Назад"}))
+async def ref_photo_text(message: Message, state: FSMContext):
+    data = await state.get_data()
+    prompt = data.get("ref_prompt", "")
+    prompt += f" {message.text}"
+    await state.update_data(ref_prompt=prompt)
+    await message.answer("Text context added. Send more photos or /done.")
+
 @router.message(UserStates.REF_PHOTO_COLLECT, F.text.casefold() == "/done")
 async def ref_photo_done(message: Message, state: FSMContext, bot: Bot):
     user_id = message.from_user.id
@@ -65,7 +74,8 @@ async def ref_photo_done(message: Message, state: FSMContext, bot: Bot):
 
     # Check limit again just in case
     session = await get_session_info(user_id)
-    is_paid = session and session[2]
+    from utils.config import ADMIN_IDS
+    is_paid = (session and session[2]) or user_id in ADMIN_IDS
     if not is_paid:
         _, photo_count = await get_trial_usage_today(user_id)
         if photo_count >= TRIAL_LIMIT_PER_DAY:

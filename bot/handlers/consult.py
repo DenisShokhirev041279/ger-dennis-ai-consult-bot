@@ -9,7 +9,10 @@ from bot.ai.openai_client import get_ai_response
 
 router = Router()
 
-@router.message()
+from aiogram.fsm.state import default_state
+
+@router.message(default_state)
+@router.message(UserStates.CONSULT_MODE)
 async def consult_handler(message: Message, state: FSMContext):
     user_id = message.from_user.id
     
@@ -18,7 +21,8 @@ async def consult_handler(message: Message, state: FSMContext):
     
     # Rate Limiter
     from utils.rate_limiter import is_rate_limited
-    if is_rate_limited(user_id):
+    from utils.config import ADMIN_IDS
+    if is_rate_limited(user_id) and user_id not in ADMIN_IDS:
         await message.answer("⚠️ Too many messages. Please wait a minute.")
         return
 
@@ -28,7 +32,7 @@ async def consult_handler(message: Message, state: FSMContext):
     # Check Subscription
     from utils.subscription import check_subscription
     sub_data = await check_subscription(user_id)
-    is_paid = sub_data["has_subscription"]
+    is_paid = sub_data["has_subscription"] or user_id in ADMIN_IDS
     mode = "paid" if is_paid else "trial"
     
     msg_count, _ = await get_trial_usage_today(user_id)

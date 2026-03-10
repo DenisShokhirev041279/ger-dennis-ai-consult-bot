@@ -1,7 +1,7 @@
 import os
 import io
 from aiogram import Router, F, Bot
-from aiogram.types import Message, CallbackQuery, InlineKeyboardMarkup, InlineKeyboardButton, InputMediaPhoto, BufferedInputFile
+from aiogram.types import Message, CallbackQuery, InlineKeyboardMarkup, InlineKeyboardButton, InputMediaPhoto, BufferedInputFile, ReplyKeyboardMarkup, KeyboardButton, ReplyKeyboardRemove
 from aiogram.fsm.context import FSMContext
 from bot.states import UserStates
 from bot.ai.gemini_client import brand_audit
@@ -24,13 +24,23 @@ async def download_photo(message: Message, bot: Bot) -> str:
     await bot.download_file(file.file_path, file_path)
     return file_path
 
+def get_cancel_kb():
+    return ReplyKeyboardMarkup(keyboard=[[KeyboardButton(text="🔙 Cancel / Назад")]], resize_keyboard=True)
+
+@router.message(F.text == "🔙 Cancel / Назад")
+async def cancel_cv_action(message: Message, state: FSMContext):
+    await state.clear()
+    from bot.handlers.menu import show_main_menu
+    await message.answer("🛑 Action cancelled.", reply_markup=ReplyKeyboardRemove())
+    await show_main_menu(message, message.from_user.id)
+
 # Menus Route - Wait for photo
 @router.callback_query(F.data == "cv_brand_audit")
 async def start_brand_audit(call: CallbackQuery, state: FSMContext):
     await state.set_state(UserStates.CV_BRAND_AUDIT)
     lang = await get_user_lang(call.from_user.id)
     msg = "Please send 1 photo for Brand Audit." if lang != "ru" else "Отправьте 1 фото для Brand Audit."
-    await call.message.answer(msg)
+    await call.message.answer(msg, reply_markup=get_cancel_kb())
     await call.answer()
 
 @router.callback_query(F.data == "cv_product_photo")
@@ -38,7 +48,7 @@ async def start_product_photo(call: CallbackQuery, state: FSMContext):
     await state.set_state(UserStates.CV_PRODUCT_PHOTO)
     lang = await get_user_lang(call.from_user.id)
     msg = "Please send 1 photo for AI Background Removal." if lang != "ru" else "Отправьте 1 фото для удаления фона."
-    await call.message.answer(msg)
+    await call.message.answer(msg, reply_markup=get_cancel_kb())
     await call.answer()
 
 @router.callback_query(F.data == "cv_social_kit")
@@ -46,7 +56,7 @@ async def start_social_kit(call: CallbackQuery, state: FSMContext):
     await state.set_state(UserStates.CV_SOCIAL_KIT)
     lang = await get_user_lang(call.from_user.id)
     msg = "Please send 1 photo. We will resize it for Social Media (1:1, 4:5, 9:16)." if lang != "ru" else "Отправьте 1 фото для нарезки Social Kit (1:1, 4:5, 9:16)."
-    await call.message.answer(msg)
+    await call.message.answer(msg, reply_markup=get_cancel_kb())
     await call.answer()
 
 @router.callback_query(F.data == "cv_ai_video")
@@ -54,7 +64,7 @@ async def start_ai_video(call: CallbackQuery, state: FSMContext):
     await state.set_state(UserStates.CV_AI_VIDEO)
     lang = await get_user_lang(call.from_user.id)
     msg = "Please send 1 photo to animate via MagicHour." if lang != "ru" else "Отправьте 1 фото для анимации через MagicHour."
-    await call.message.answer(msg)
+    await call.message.answer(msg, reply_markup=get_cancel_kb())
     await call.answer()
 
 # Brand Audit Handler
@@ -125,6 +135,11 @@ async def process_brand_audit(message: Message, state: FSMContext, bot: Bot):
         if os.path.exists(file_path):
             os.remove(file_path)
     await state.clear()
+    
+    # Show main menu since task is complete
+    from bot.handlers.menu import show_main_menu
+    await message.answer("✨ Process finished.", reply_markup=ReplyKeyboardRemove())
+    await show_main_menu(message, message.from_user.id)
 
 # Product Photo (Remove.bg) Handler
 @router.message(UserStates.CV_PRODUCT_PHOTO, F.photo)
@@ -145,6 +160,9 @@ async def process_product_photo(message: Message, state: FSMContext, bot: Bot):
         if os.path.exists(file_path):
             os.remove(file_path)
     await state.clear()
+    from bot.handlers.menu import show_main_menu
+    await message.answer("✨ Process finished.", reply_markup=ReplyKeyboardRemove())
+    await show_main_menu(message, message.from_user.id)
 
 # Social Kit (Pillow crops) Handler
 @router.message(UserStates.CV_SOCIAL_KIT, F.photo)
@@ -195,6 +213,9 @@ async def process_social_kit(message: Message, state: FSMContext, bot: Bot):
         if os.path.exists(file_path):
             os.remove(file_path)
     await state.clear()
+    from bot.handlers.menu import show_main_menu
+    await message.answer("✨ Process finished.", reply_markup=ReplyKeyboardRemove())
+    await show_main_menu(message, message.from_user.id)
 
 # AI Video (MagicHour) Handler
 @router.message(UserStates.CV_AI_VIDEO, F.photo)
@@ -213,3 +234,6 @@ async def process_ai_video(message: Message, state: FSMContext, bot: Bot):
         if os.path.exists(file_path):
             os.remove(file_path)
     await state.clear()
+    from bot.handlers.menu import show_main_menu
+    await message.answer("✨ Process finished.", reply_markup=ReplyKeyboardRemove())
+    await show_main_menu(message, message.from_user.id)
