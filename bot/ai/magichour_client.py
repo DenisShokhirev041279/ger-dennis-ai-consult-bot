@@ -1,4 +1,5 @@
 import os
+import tempfile
 import asyncio
 from magic_hour import AsyncClient
 from utils.logger import logger
@@ -26,6 +27,7 @@ async def generate_animation(image_path: str, end_seconds: int = 5) -> str:
             width=512,
             style={
                 "art_style": "Custom",
+                "art_style_custom": "cinematic realistic 3d render animation with smooth transitions",
                 "camera_effect": "Simple Zoom Out",
                 "prompt_type": "custom",
                 "prompt": "dynamic motion, high quality cinematic animation",
@@ -33,7 +35,7 @@ async def generate_animation(image_path: str, end_seconds: int = 5) -> str:
             },
             wait_for_completion=True,
             download_outputs=True,
-            download_directory="./temp/"
+            download_directory=tempfile.gettempdir()
         )
         
         # The SDK returns the paths to downloaded files if download_outputs=True
