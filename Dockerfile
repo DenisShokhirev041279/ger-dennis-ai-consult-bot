@@ -12,4 +12,4 @@ ENV PYTHONUNBUFFERED=1
 
 EXPOSE 8080
 
-CMD ["python", "bot/main.py"]
+CMD ["python", "-m", "bot.main"]
