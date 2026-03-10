@@ -19,3 +19,5 @@ __pycache__/
 # Project
 koyeb.md
 test_claude.py
+test_cv_tools.py
+pinchtab/
