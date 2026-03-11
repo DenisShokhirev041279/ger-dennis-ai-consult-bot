@@ -32,7 +32,7 @@ async def ref_photo_start(message: Message, state: FSMContext):
     await state.update_data(ref_photos=[], ref_prompt="")
     
     await message.answer(
-        get_text(user_lang, "ref_photo_intro") or "Send 2-14 photos. Then /done. /cancel to quit.",
+        get_text(user_lang, "ref_photo_intro") or "Send 1-14 photos. Then /done. /cancel to quit.",
         reply_markup=ReplyKeyboardRemove()
     )
 
@@ -68,8 +68,8 @@ async def ref_photo_done(message: Message, state: FSMContext, bot: Bot):
     photos = data.get("ref_photos", [])
     prompt = data.get("ref_prompt", "")
     
-    if not (2 <= len(photos) <= 14):
-        await message.answer(get_text(user_lang, "ref_photo_error_count") or "Need 2-14 photos.")
+    if not (1 <= len(photos) <= 14):
+        await message.answer(get_text(user_lang, "ref_photo_error_count") or "Need 1-14 photos.")
         return
 
     # Check limit again just in case

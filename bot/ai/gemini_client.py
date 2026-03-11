@@ -41,8 +41,8 @@ async def merge_reference_photos(image_paths: list[str], user_prompt: str = "") 
                 # Continue if we have at least 2
                 continue
                 
-        if len(pil_images) < 2:
-            raise ValueError("Need at least 2 valid images for merge.")
+        if len(pil_images) < 1:
+            raise ValueError("Need at least 1 valid image for merge.")
 
         # 1. Analyze with Gemini 1.5 Pro (NanoBanana Pro Tier)
         # Use robust retry logic or fallback if quota exceeded

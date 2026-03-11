@@ -28,8 +28,8 @@ STRINGS = {
         "payment_approved": "✅ Payment approved! Session activated.",
         "payment_rejected": "❌ Payment rejected. Please provide proof (screenshot/txid) and try again.",
         "trial_ended": "Trial limit reached today. To continue, please book a consultation.",
-        "ref_photo_intro": "Send 2-14 reference photos. Then send /done. To cancel: /cancel. You can add text context.",
-        "ref_photo_error_count": "Please send between 2 and 14 photos.",
+        "ref_photo_intro": "Send 1-14 reference photos. Then send /done. To cancel: /cancel. You can add text context.",
+        "ref_photo_error_count": "Please send between 1 and 14 photos.",
         "ref_photo_done": "Processing your reference merge... (This may take a minute)",
         "ref_photo_limit": "Daily reference photo limit reached. Please book a session."
     },
@@ -62,8 +62,8 @@ STRINGS = {
         "payment_approved": "✅ Оплата подтверждена! Сессия активирована.",
         "payment_rejected": "❌ Оплата отклонена. Пожалуйста, предоставьте чек (скриншот/txid) и попробуйте снова.",
         "trial_ended": "Лимит тестовых сообщений на сегодня исчерпан. Для продолжения забронируйте консультацию.",
-        "ref_photo_intro": "Отправьте от 2 до 14 референсных фото. Затем отправьте /done. Отмена: /cancel. Можно добавить текстовое описание.",
-        "ref_photo_error_count": "Пожалуйста, отправьте от 2 до 14 фото.",
+        "ref_photo_intro": "Отправьте от 1 до 14 референсных фото. Затем отправьте /done. Отмена: /cancel. Можно добавить текстовое описание.",
+        "ref_photo_error_count": "Пожалуйста, отправьте от 1 до 14 фото.",
         "ref_photo_done": "Обработка ваших фото... (Это может занять минуту)",
         "ref_photo_limit": "Дневной лимит референсных фото исчерпан. Пожалуйста, забронируйте сессию."
     },
@@ -96,8 +96,8 @@ STRINGS = {
         "payment_approved": "✅ Zahlung genehmigt! Session aktiviert.",
         "payment_rejected": "❌ Zahlung abgelehnt. Bitte Nachweis (Screenshot/txid) vorlegen und erneut versuchen.",
         "trial_ended": "Testlimit für heute erreicht. Um fortzufahren, buchen Sie bitte eine Beratung.",
-        "ref_photo_intro": "Senden Sie 2-14 Referenzfotos. Senden Sie dann /done. Abbrechen: /cancel. Sie können Textkontext hinzufügen.",
-        "ref_photo_error_count": "Bitte senden Sie zwischen 2 und 14 Fotos.",
+        "ref_photo_intro": "Senden Sie 1-14 Referenzfotos. Senden Sie dann /done. Abbrechen: /cancel. Sie können Textkontext hinzufügen.",
+        "ref_photo_error_count": "Bitte senden Sie zwischen 1 und 14 Fotos.",
         "ref_photo_done": "Ihre Fotos werden zusammengeführt... (Dies kann eine Minute dauern)",
         "ref_photo_limit": "Tägliches Limit für Referenzfotos erreicht. Bitte buchen Sie eine Session."
     }
