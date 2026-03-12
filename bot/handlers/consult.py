@@ -26,7 +26,6 @@ async def consult_handler(message: Message, state: FSMContext):
 
     # Admin full bypass — no checks, no watermark, full response
     if user_id in ADMIN_IDS:
-        from utils.db_helpers_memory import save_message, get_conversation_history, get_current_session_id
         user_lang = await get_user_lang(user_id)
         session_id = await get_current_session_id(user_id)
         history = await get_conversation_history(user_id, session_id, limit=20)
