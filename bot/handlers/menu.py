@@ -56,7 +56,26 @@ async def menu_services(message: Message, state):
 
 @router.message(F.text.contains("Help") | F.text.contains("Помощь"))
 async def menu_help(message: Message):
-    await message.answer("Support: @ger_dennis\nEmail: contact@example.com")
+    lang = await get_user_lang(message.from_user.id)
+    if lang == "ru":
+        text = (
+            "🆘 *Помощь*\n\n"
+            "📌 Команды:\n"
+            "• /mystatus — ваша подписка и остаток сообщений\n"
+            "• /newsession — начать новый диалог\n"
+            "• /start — главное меню\n\n"
+            "📩 Поддержка: @ger_dennis"
+        )
+    else:
+        text = (
+            "🆘 *Help*\n\n"
+            "📌 Commands:\n"
+            "• /mystatus — your subscription & messages left\n"
+            "• /newsession — start a new conversation\n"
+            "• /start — main menu\n\n"
+            "📩 Support: @ger_dennis"
+        )
+    await message.answer(text, parse_mode="Markdown")
 
 @router.message(F.text.in_({"Портфолио", "Portfolio"}))
 async def menu_portfolio(message: Message):
