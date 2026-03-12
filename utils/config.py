@@ -21,5 +21,5 @@ TON_WALLET = os.getenv("PAYMENT_TON_ADDRESS", "")
 
 # Trial limits
 TRIAL_LIMIT_PER_DAY = int(os.getenv("TRIAL_LIMIT_PER_DAY", "1"))
-TRIAL_MAX_MESSAGES = int(os.getenv("TRIAL_MAX_MESSAGES", "3"))
+TRIAL_MAX_MESSAGES = int(os.getenv("TRIAL_MAX_MESSAGES", "10"))
 SESSION_DEFAULT_MINUTES = int(os.getenv("SESSION_DEFAULT_MINUTES", "30"))

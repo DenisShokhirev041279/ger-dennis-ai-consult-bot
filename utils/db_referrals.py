@@ -3,10 +3,10 @@ from utils.db import DB_PATH
 from utils.logger import logger
 
 async def add_referral(referrer_id: int, referred_id: int):
-    """Register a new referral."""
+    """Register a new referral. Bonus is NOT granted here — only after referred user pays."""
     if referrer_id == referred_id:
         return
-    
+
     async with aiosqlite.connect(DB_PATH) as db:
         try:
             await db.execute("""
@@ -14,14 +14,44 @@ async def add_referral(referrer_id: int, referred_id: int):
                 VALUES (?, ?)
             """, (referrer_id, referred_id))
             await db.commit()
-            
-            # Grant Bonus
-            from utils.db_helpers import update_bonus_credits
-            await update_bonus_credits(referrer_id, 1)
-            
-            logger.info(f"Referral registered: {referrer_id} -> {referred_id}. Bonus granted.")
+            logger.info(f"Referral registered: {referrer_id} -> {referred_id}. Bonus pending payment.")
         except aiosqlite.IntegrityError:
-            # User already referred or registered
+            pass
+
+
+async def grant_referral_bonus_on_payment(referred_id: int, bot=None):
+    """Call this when referred user makes first payment. Grants bonus to referrer."""
+    async with aiosqlite.connect(DB_PATH) as db:
+        async with db.execute("""
+            SELECT referrer_id, bonus_granted FROM referrals WHERE referred_id = ?
+        """, (referred_id,)) as cursor:
+            row = await cursor.fetchone()
+
+        if not row or row[1]:  # No referral or bonus already granted
+            return
+
+        referrer_id = row[0]
+
+        # Mark bonus as granted + update referred_subscribed flag
+        await db.execute("""
+            UPDATE referrals SET bonus_granted = 1, referred_subscribed = 1
+            WHERE referred_id = ?
+        """, (referred_id,))
+        await db.commit()
+
+    # Grant bonus credit to referrer
+    from utils.db_helpers import update_bonus_credits
+    await update_bonus_credits(referrer_id, 3)  # 3 bonus messages for successful referral
+    logger.info(f"Referral bonus granted to {referrer_id} after {referred_id} paid.")
+
+    # Notify referrer if bot instance provided
+    if bot:
+        try:
+            await bot.send_message(
+                referrer_id,
+                "🎉 Your referral just subscribed! You got +3 bonus messages."
+            )
+        except Exception:
             pass
 
 async def get_referrer(referred_id: int):
