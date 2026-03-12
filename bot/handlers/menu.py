@@ -90,13 +90,13 @@ async def menu_referrals(message: Message):
     msg = (
         f"🎁 **Реферальная программа**\n\n"
         f"Приглашайте друзей и получайте бонусные сообщения!\n"
-        f"За каждого приглашенного: +1 бонусное сообщение.\n\n"
-        f"Ваша ссылка: `{ref_link}`"
+        f"Когда друг оплатит подписку — вы получите **+3 бонусных сообщения**.\n\n"
+        f"Ваша ссылка:\n`{ref_link}`"
     ) if user_lang == "ru" else (
         f"🎁 **Referral Program**\n\n"
-        f"Invite friends and get bonus trial messages!\n"
-        f"For each referral: +1 bonus message.\n\n"
-        f"Your link: `{ref_link}`"
+        f"Invite friends and earn bonus messages!\n"
+        f"When your friend subscribes — you get **+3 bonus messages**.\n\n"
+        f"Your link:\n`{ref_link}`"
     )
     
     await message.answer(msg, parse_mode="Markdown")
