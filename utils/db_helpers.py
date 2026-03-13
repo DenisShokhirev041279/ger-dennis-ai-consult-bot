@@ -68,6 +68,15 @@ async def increment_trial_messages(user_id: int):
         """, (user_id, today))
         await db.commit()
 
+async def get_trial_usage_total(user_id: int) -> int:
+    """Get total trial messages used across ALL days (not just today)."""
+    async with aiosqlite.connect(DB_PATH) as db:
+        async with db.execute("""
+            SELECT COALESCE(SUM(message_count), 0) FROM trial_usage WHERE user_id = ?
+        """, (user_id,)) as cursor:
+            row = await cursor.fetchone()
+            return row[0] if row else 0
+
 async def increment_trial_photos(user_id: int):
     """Increment trial photo count for user today"""
     today = time.strftime("%Y-%m-%d")

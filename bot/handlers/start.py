@@ -81,7 +81,7 @@ async def cmd_mystatus(message: Message):
     lang = await get_user_lang(user_id)
 
     from utils.subscription import check_subscription
-    from utils.db_helpers import get_trial_usage_today, get_bonus_credits
+    from utils.db_helpers import get_trial_usage_total, get_bonus_credits
     from utils.config import TRIAL_MAX_MESSAGES, ADMIN_IDS
 
     # Admin — special status
@@ -90,7 +90,7 @@ async def cmd_mystatus(message: Message):
         return
 
     sub_data = await check_subscription(user_id)
-    msg_today, _ = await get_trial_usage_today(user_id)
+    msg_today = await get_trial_usage_total(user_id)
     bonus = await get_bonus_credits(user_id)
 
     if sub_data["has_subscription"]:

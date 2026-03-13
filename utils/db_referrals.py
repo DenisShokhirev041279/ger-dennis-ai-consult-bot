@@ -54,6 +54,19 @@ async def grant_referral_bonus_on_payment(referred_id: int, bot=None):
         except Exception:
             pass
 
+async def get_referral_stats(referrer_id: int) -> dict:
+    """Get referral stats for a user: total invited, how many paid, bonus earned."""
+    async with aiosqlite.connect(DB_PATH) as db:
+        async with db.execute("""
+            SELECT COUNT(*), SUM(referred_subscribed), SUM(bonus_granted)
+            FROM referrals WHERE referrer_id = ?
+        """, (referrer_id,)) as cursor:
+            row = await cursor.fetchone()
+    total = row[0] or 0
+    paid = row[1] or 0
+    bonuses_granted = row[2] or 0
+    return {"total": total, "paid": paid, "bonuses_granted": bonuses_granted}
+
 async def get_referrer(referred_id: int):
     """Get the ID of the person who referred this user."""
     async with aiosqlite.connect(DB_PATH) as db:

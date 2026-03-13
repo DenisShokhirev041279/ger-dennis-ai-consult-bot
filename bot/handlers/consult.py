@@ -6,7 +6,7 @@ from bot.states import UserStates
 from utils.db import get_user_lang
 from utils.i18n import get_text
 from utils.config import ADMIN_IDS, TRIAL_MAX_MESSAGES
-from utils.db_helpers import get_trial_usage_today, increment_trial_messages, get_bonus_credits, update_bonus_credits
+from utils.db_helpers import get_trial_usage_today, get_trial_usage_total, increment_trial_messages, get_bonus_credits, update_bonus_credits
 from utils.subscription import check_subscription
 from utils.security import is_prompt_injection, sanitize_user_input
 from utils.db_helpers_memory import save_message, get_conversation_history, get_current_session_id
@@ -56,7 +56,7 @@ async def consult_handler(message: Message, state: FSMContext):
 
     # Trial logic
     if not is_paid:
-        msg_count, _ = await get_trial_usage_today(user_id)
+        msg_count = await get_trial_usage_total(user_id)
         bonus = await get_bonus_credits(user_id)
         total_allowed = TRIAL_MAX_MESSAGES + bonus
 

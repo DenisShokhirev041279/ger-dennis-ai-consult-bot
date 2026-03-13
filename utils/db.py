@@ -99,6 +99,12 @@ async def init_db():
             )
         """)
         
+        # Performance indexes
+        await db.execute("CREATE INDEX IF NOT EXISTS idx_subscriptions_user_status ON subscriptions(user_id, status)")
+        await db.execute("CREATE INDEX IF NOT EXISTS idx_payment_claims_user_status ON payment_claims(user_id, status)")
+        await db.execute("CREATE INDEX IF NOT EXISTS idx_trial_usage_user ON trial_usage(user_id)")
+        await db.execute("CREATE INDEX IF NOT EXISTS idx_referrals_referrer ON referrals(referrer_id)")
+
         await db.commit()
     logger.info("Database initialized with Phase 1 tables.")
 

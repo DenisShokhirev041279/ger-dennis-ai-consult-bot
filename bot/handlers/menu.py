@@ -102,20 +102,47 @@ async def menu_subscribe_btn(message: Message, state):
 async def menu_referrals(message: Message):
     user_id = message.from_user.id
     user_lang = await get_user_lang(user_id)
-    
+
+    from utils.db_referrals import get_referral_stats
+    from utils.db_helpers import get_bonus_credits
+
+    stats = await get_referral_stats(user_id)
+    bonus = await get_bonus_credits(user_id)
     bot_info = await message.bot.get_me()
     ref_link = f"https://t.me/{bot_info.username}?start=ref_{user_id}"
-    
-    msg = (
-        f"🎁 **Реферальная программа**\n\n"
-        f"Приглашайте друзей и получайте бонусные сообщения!\n"
-        f"Когда друг оплатит подписку — вы получите **+3 бонусных сообщения**.\n\n"
-        f"Ваша ссылка:\n`{ref_link}`"
-    ) if user_lang == "ru" else (
-        f"🎁 **Referral Program**\n\n"
-        f"Invite friends and earn bonus messages!\n"
-        f"When your friend subscribes — you get **+3 bonus messages**.\n\n"
-        f"Your link:\n`{ref_link}`"
-    )
-    
+
+    if user_lang == "ru":
+        msg = (
+            f"🤝 *Реферальная программа*\n\n"
+            f"📊 *Ваша статистика:*\n"
+            f"• Приглашено: *{stats['total']}*\n"
+            f"• Оплатили подписку: *{stats['paid']}*\n"
+            f"• Бонусов заработано: *{stats['bonuses_granted'] * 3}* сообщений\n"
+            f"• Бонусов осталось: *{bonus}*\n\n"
+            f"💡 За каждого оплатившего друга вы получаете *+3 сообщения*.\n\n"
+            f"🔗 Ваша ссылка:\n`{ref_link}`"
+        )
+    elif user_lang == "de":
+        msg = (
+            f"🤝 *Empfehlungsprogramm*\n\n"
+            f"📊 *Ihre Statistik:*\n"
+            f"• Eingeladen: *{stats['total']}*\n"
+            f"• Haben abonniert: *{stats['paid']}*\n"
+            f"• Verdiente Boni: *{stats['bonuses_granted'] * 3}* Nachrichten\n"
+            f"• Verbleibende Boni: *{bonus}*\n\n"
+            f"💡 Für jeden zahlenden Freund erhalten Sie *+3 Nachrichten*.\n\n"
+            f"🔗 Ihr Link:\n`{ref_link}`"
+        )
+    else:
+        msg = (
+            f"🤝 *Referral Program*\n\n"
+            f"📊 *Your stats:*\n"
+            f"• Invited: *{stats['total']}*\n"
+            f"• Subscribed: *{stats['paid']}*\n"
+            f"• Bonuses earned: *{stats['bonuses_granted'] * 3}* messages\n"
+            f"• Bonuses remaining: *{bonus}*\n\n"
+            f"💡 For each friend who subscribes you get *+3 messages*.\n\n"
+            f"🔗 Your link:\n`{ref_link}`"
+        )
+
     await message.answer(msg, parse_mode="Markdown")
