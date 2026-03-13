@@ -23,26 +23,27 @@
 
 ---
 
-## 🔄 БЛОК 3 — Докрутка после запуска
+## ✅ БЛОК 3 — Докрутка после запуска (СДЕЛАНО)
 
 ### Пользовательский опыт
-- [ ] Реферальный дашборд — сколько пригласил, сколько оплатили, заработано бонусов
-- [ ] Upgrade между планами без ожидания истечения
-- [ ] Показывать дату истечения подписки в `/mystatus`
-- [ ] Trial: считать суммарно (не сбрасывать каждый день)
-- [ ] Upsell сообщение на русском (сейчас "TRIAL EXHAUSTED" на английском)
+- [x] Показывать дату истечения подписки в `/mystatus` (DD.MM.YYYY)
+- [x] Trial progress bar в `/mystatus` (▓░ used/total + бонусы)
+- [x] Upsell мультиязычный (RU/EN/DE) при исчерпании trial
+- [x] Мультиязычные rate-limit и прочие ошибки в `consult.py`
 
 ### Технические
-- [ ] Таймаут для видео-генерации (MagicHour) + уведомление пользователю
-- [ ] Индексы в БД: `payment_claims(user_id, status)`, `subscriptions(user_id, status)`
-- [ ] Очистка старых данных: `trial_usage`, `analytics_events`, `conversation_history`
-- [ ] `google.generativeai` → `google.genai` (deprecated пакет)
-- [ ] Python 3.10 → 3.11 в Dockerfile (Google API предупреждение)
-- [ ] Staging окружение (отдельный Koyeb сервис для тестов)
+- [x] Таймаут 180 сек для MagicHour + `asyncio.wait_for`
+- [x] `cv_tools.py`: перехват `TimeoutError`, мультиязычное сообщение пользователю
+- [x] `/testpay` ограничен только для ADMIN_IDS
+- [x] `has_user()` helper в `utils/db.py`
+- [x] `expires_at` возвращается из `check_subscription()`
 
-### Безопасность
-- [ ] `/testpay` ограничить только для ADMIN_IDS
-- [ ] Timezone: использовать UTC везде (сейчас `strftime` берёт локальное время сервера)
+### Остаток (перенесено в Блок 4)
+- [ ] Индексы в БД: `payment_claims(user_id, status)`, `subscriptions(user_id, status)`
+- [ ] `google.generativeai` → `google.genai` (deprecated пакет, FutureWarning)
+- [ ] Python 3.10 → 3.11 в Dockerfile
+- [ ] Trial: считать суммарно (не сбрасывать каждый день)
+- [ ] Timezone UTC везде
 - [ ] Admin approval кнопки: защита от двойного нажатия (race condition)
 
 ---
@@ -60,7 +61,19 @@
 
 ---
 
-## 💡 ИДЕИ ДЛЯ БУДУЩЕГО (Блок 4+)
+## 🔄 БЛОК 4 — Следующий приоритет
+
+- [ ] Индексы в БД для производительности (`subscriptions`, `payment_claims`, `analytics_events`)
+- [ ] `google.generativeai` → `google.genai` (FutureWarning, пакет deprecated)
+- [ ] Trial: суммарный счётчик на все дни (сейчас сбрасывается каждый день)
+- [ ] Реферальный дашборд для пользователя — приглашённые, оплатившие, бонусы
+- [ ] Upgrade плана без ожидания истечения
+- [ ] Timezone UTC везде (сейчас `strftime` берёт локальное время сервера)
+- [ ] Python 3.10 → 3.11 в Dockerfile
+
+---
+
+## 💡 ИДЕИ ДЛЯ БУДУЩЕГО (Блок 5+)
 
 - [ ] Telegram WebApp для красивого UI подписок
 - [ ] Email-рассылка при истечении подписки
