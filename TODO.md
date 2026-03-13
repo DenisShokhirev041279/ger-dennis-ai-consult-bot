@@ -61,15 +61,19 @@
 
 ---
 
-## 🔄 БЛОК 4 — Следующий приоритет
+## ✅ БЛОК 4 — Производительность и полировка (СДЕЛАНО)
 
-- [ ] Индексы в БД для производительности (`subscriptions`, `payment_claims`, `analytics_events`)
-- [ ] `google.generativeai` → `google.genai` (FutureWarning, пакет deprecated)
-- [ ] Trial: суммарный счётчик на все дни (сейчас сбрасывается каждый день)
-- [ ] Реферальный дашборд для пользователя — приглашённые, оплатившие, бонусы
+- [x] Trial: суммарный счётчик на все дни — `get_trial_usage_total()`, больше не сбрасывается
+- [x] Индексы в БД: `subscriptions`, `payment_claims`, `trial_usage`, `referrals`
+- [x] Реферальный дашборд: статистика (приглашено / оплатили / заработано / осталось)
+- [x] `google.generativeai` → `google.genai` — async client, без FutureWarning
+- [x] Python 3.10 → 3.11 в Dockerfile
+- [x] `requirements.txt`: `google-genai>=1.0.0`
+
+### Остаток (Блок 5)
 - [ ] Upgrade плана без ожидания истечения
-- [ ] Timezone UTC везде (сейчас `strftime` берёт локальное время сервера)
-- [ ] Python 3.10 → 3.11 в Dockerfile
+- [ ] Timezone UTC везде
+- [ ] Admin approval кнопки: защита от двойного нажатия (race condition)
 
 ---
 
