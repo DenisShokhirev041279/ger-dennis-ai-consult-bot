@@ -119,6 +119,11 @@ async def get_user_lang(user_id):
             row = await cursor.fetchone()
             return row[0] if row else "en"
 
+async def has_user(user_id):
+    async with aiosqlite.connect(DB_PATH) as db:
+        async with db.execute("SELECT 1 FROM users WHERE user_id = ?", (user_id,)) as cursor:
+            return await cursor.fetchone() is not None
+
 async def activate_session(user_id, duration_minutes):
     start_time = int(time.time())
     async with aiosqlite.connect(DB_PATH) as db:

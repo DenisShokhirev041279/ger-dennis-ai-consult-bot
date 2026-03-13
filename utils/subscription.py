@@ -19,7 +19,8 @@ async def check_subscription(user_id: int) -> dict:
         "has_subscription": False,
         "plan": None,
         "daily_remaining": 0,
-        "features": []
+        "features": [],
+        "expires_at": None,
     }
     
     async with aiosqlite.connect(DB_PATH) as db:
@@ -62,6 +63,7 @@ async def check_subscription(user_id: int) -> dict:
             result["plan"] = plan_key
             result["daily_remaining"] = max(0, plan_details["daily_ai_limit"] - used_today)
             result["features"] = plan_details["features"]
+            result["expires_at"] = expires_at
         else:
             # Mark expired if needed
             await db.execute("""

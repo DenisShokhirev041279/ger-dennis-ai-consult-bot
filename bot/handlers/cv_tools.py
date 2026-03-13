@@ -222,6 +222,17 @@ async def process_social_kit(message: Message, state: FSMContext, bot: Bot):
 async def process_ai_video(message: Message, state: FSMContext, bot: Bot):
     await message.answer("Sending to MagicHour for Animation. This may take a couple of minutes... 🎬")
     file_path = await download_photo(message, bot)
+    user_lang = await get_user_lang(message.from_user.id)
+    _timeout_text = {
+        "ru": "⏱ Генерация видео заняла слишком долго (лимит 3 мин). Попробуйте позже.",
+        "en": "⏱ Video generation timed out (3 min limit). Please try again later.",
+        "de": "⏱ Videogenerierung hat zu lange gedauert (3 Min. Limit). Bitte versuche es später.",
+    }
+    _fail_text = {
+        "ru": "❌ Не удалось сгенерировать видео. Попробуйте другое фото.",
+        "en": "❌ Video generation failed. Try a different photo.",
+        "de": "❌ Videogenerierung fehlgeschlagen. Versuche ein anderes Foto.",
+    }
     try:
         video_path = await generate_animation(file_path)
         if video_path and os.path.exists(video_path):
@@ -229,7 +240,9 @@ async def process_ai_video(message: Message, state: FSMContext, bot: Bot):
             await message.answer_video(FSInputFile(video_path), caption="🎬 Your MagicHour Animation")
             os.remove(video_path)
         else:
-            await message.answer("❌ Video generation failed.")
+            await message.answer(_fail_text.get(user_lang, _fail_text["en"]))
+    except TimeoutError:
+        await message.answer(_timeout_text.get(user_lang, _timeout_text["en"]))
     finally:
         if os.path.exists(file_path):
             os.remove(file_path)

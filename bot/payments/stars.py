@@ -59,6 +59,9 @@ async def stars_success(message: Message, state: FSMContext):
 
 @router.message(F.text == "/testpay")
 async def test_payment(message: Message, state: FSMContext):
+    from utils.config import ADMIN_IDS
+    if message.from_user.id not in ADMIN_IDS:
+        return
     await activate_session(message.from_user.id, 30)
     await state.set_state(UserStates.CONSULT_MODE)
     await message.answer("✅ TEST MODE: 30 min session activated.")

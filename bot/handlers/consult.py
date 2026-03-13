@@ -24,9 +24,11 @@ async def consult_handler(message: Message, state: FSMContext):
     if not message.text:
         return
 
+    # Get language first — needed for all user-facing messages
+    user_lang = await get_user_lang(user_id)
+
     # Admin full bypass — no checks, no watermark, full response
     if user_id in ADMIN_IDS:
-        user_lang = await get_user_lang(user_id)
         session_id = await get_current_session_id(user_id)
         history = await get_conversation_history(user_id, session_id, limit=20)
         await save_message(user_id, session_id, "user", message.text)
@@ -40,11 +42,12 @@ async def consult_handler(message: Message, state: FSMContext):
     # Rate Limiter
     from utils.rate_limiter import is_rate_limited
     if is_rate_limited(user_id):
-        await message.answer("⚠️ Too many messages. Please wait a minute.")
+        _rate_msg = {
+            "ru": "⚠️ Слишком много сообщений. Подождите минуту.",
+            "de": "⚠️ Zu viele Nachrichten. Bitte warten Sie eine Minute.",
+        }.get(user_lang, "⚠️ Too many messages. Please wait a minute.")
+        await message.answer(_rate_msg)
         return
-
-    # Get user language
-    user_lang = await get_user_lang(user_id)
 
     # Check Subscription
     sub_data = await check_subscription(user_id)
@@ -58,15 +61,20 @@ async def consult_handler(message: Message, state: FSMContext):
         total_allowed = TRIAL_MAX_MESSAGES + bonus
 
         if msg_count >= total_allowed:
+            _trial_texts = {
+                "ru": "🔒 Пробный период исчерпан.\n\nОформите подписку для продолжения или пригласите друга:",
+                "de": "🔒 Testzeitraum abgelaufen.\n\nAbonnieren Sie oder laden Sie einen Freund ein:",
+            }
+            _sub_btn = {"ru": "⭐ Оформить подписку", "de": "⭐ Abonnieren"}.get(user_lang, "⭐ Subscribe")
+            _ref_btn = {"ru": "🤝 Пригласить друга (+3 сообщения)", "de": "🤝 Freund einladen (+3)"}.get(user_lang, "🤝 Refer a Friend (+3 msgs)")
             kb = InlineKeyboardMarkup(inline_keyboard=[
-                [InlineKeyboardButton(text="⭐ Subscribe / My Plan", callback_data="subscribe_menu")],
-                [InlineKeyboardButton(text="🤝 Refer a Friend (+1 msg)", callback_data="menu_referrals")]
+                [InlineKeyboardButton(text=_sub_btn, callback_data="subscribe_menu")],
+                [InlineKeyboardButton(text=_ref_btn, callback_data="menu_referrals")]
             ])
-            await message.answer("TRIAL EXHAUSTED. Please subscribe or refer a friend.", reply_markup=kb)
+            await message.answer(_trial_texts.get(user_lang, "🔒 Trial limit reached. Please subscribe or refer a friend."), reply_markup=kb)
             return
 
         if msg_count >= TRIAL_MAX_MESSAGES:
-            # Using bonus credit
             await update_bonus_credits(user_id, -1)
             await track(user_id, "bonus_credit_used")
 
@@ -79,7 +87,11 @@ async def consult_handler(message: Message, state: FSMContext):
     # Security check
     user_input = sanitize_user_input(message.text)
     if is_prompt_injection(user_input):
-        await message.answer("⚠️ Security Alert: Valid consultation topic required.")
+        _sec_msg = {
+            "ru": "⚠️ Пожалуйста, задайте корректный вопрос для консультации.",
+            "de": "⚠️ Bitte stellen Sie eine gültige Beratungsfrage.",
+        }.get(user_lang, "⚠️ Please provide a valid consultation question.")
+        await message.answer(_sec_msg)
         return
 
     # Conversation memory

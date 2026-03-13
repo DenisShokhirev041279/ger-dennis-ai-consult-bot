@@ -96,37 +96,52 @@ async def cmd_mystatus(message: Message):
     if sub_data["has_subscription"]:
         plan = sub_data["plan"].capitalize()
         remaining = sub_data["daily_remaining"]
+        expires_raw = sub_data.get("expires_at", "")
+        # Format expiry: "2026-04-12 10:00:00" → "12.04.2026"
+        try:
+            from datetime import datetime
+            exp_dt = datetime.strptime(expires_raw[:10], "%Y-%m-%d")
+            exp_str = exp_dt.strftime("%d.%m.%Y")
+        except Exception:
+            exp_str = expires_raw[:10] if expires_raw else "—"
+
         if lang == "ru":
             text = (
                 f"✅ *Подписка активна* — план {plan}\n\n"
+                f"📅 Действует до: *{exp_str}*\n"
                 f"💬 Осталось сообщений сегодня: *{remaining}*\n\n"
-                f"Для продления используйте ⭐ Подписка в меню."
+                f"Для продления: ⭐ Подписка в меню"
             )
         else:
             text = (
                 f"✅ *Subscription active* — {plan} plan\n\n"
+                f"📅 Valid until: *{exp_str}*\n"
                 f"💬 Messages remaining today: *{remaining}*\n\n"
-                f"To renew use ⭐ Subscribe in the menu."
+                f"To renew: ⭐ Subscribe in menu"
             )
     else:
         used = msg_today
         total = TRIAL_MAX_MESSAGES + bonus
         left = max(0, total - used)
+        bar_filled = min(10, used) * "▓"
+        bar_empty = (10 - min(10, used)) * "░"
         if lang == "ru":
             text = (
                 f"🆓 *Пробный период*\n\n"
-                f"💬 Использовано: *{used}* / {total} сообщений\n"
+                f"{bar_filled}{bar_empty} {used}/{total}\n\n"
+                f"💬 Использовано: *{used}* из {total} сообщений\n"
                 f"💬 Осталось: *{left}*\n"
-                + (f"🎁 Бонусных: *{bonus}*\n" if bonus > 0 else "")
-                + f"\nДля полного доступа — оформите подписку:\n⭐ Подписка в меню"
+                + (f"🎁 Бонусных сообщений: *{bonus}*\n" if bonus > 0 else "")
+                + f"\n💡 Для полного доступа без ограничений:\n👉 ⭐ Подписка в меню"
             )
         else:
             text = (
                 f"🆓 *Free trial*\n\n"
-                f"💬 Used: *{used}* / {total} messages\n"
+                f"{bar_filled}{bar_empty} {used}/{total}\n\n"
+                f"💬 Used: *{used}* of {total} messages\n"
                 f"💬 Remaining: *{left}*\n"
                 + (f"🎁 Bonus credits: *{bonus}*\n" if bonus > 0 else "")
-                + f"\nFor full access — subscribe:\n⭐ Subscribe in the menu"
+                + f"\n💡 For unlimited access:\n👉 ⭐ Subscribe in menu"
             )
 
     await message.answer(text, parse_mode="Markdown")
