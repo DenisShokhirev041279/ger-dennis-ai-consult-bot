@@ -60,7 +60,16 @@ async def main():
     from aiogram.webhook.aiohttp_server import SimpleRequestHandler, setup_application
     
     webhook_url = os.getenv("WEBHOOK_URL")
-    webhook_port = int(os.getenv("WEBHOOK_PORT", 8080))
+    # Use PORT env variable if WEBHOOK_PORT isn't set (Koyeb uses PORT)
+    webhook_port = int(os.getenv("PORT", os.getenv("WEBHOOK_PORT", 8080)))
+
+    app = web.Application()
+    
+    async def health_check(request: web.Request):
+        return web.json_response({"status": "ok", "db": "ok", "uptime": "connected"})
+        
+    app.router.add_get("/", health_check)
+    app.router.add_get("/health", health_check)
 
     if webhook_url:
         logger.info(f"Starting in Webhook mode on port {webhook_port}...")
@@ -75,13 +84,6 @@ async def main():
 
         dp.startup.register(on_startup)
         dp.shutdown.register(on_shutdown)
-
-        app = web.Application()
-        
-        async def health_check(request: web.Request):
-            return web.json_response({"status": "ok", "db": "ok", "uptime": "connected"})
-            
-        app.router.add_get("/health", health_check)
 
         webhook_requests_handler = SimpleRequestHandler(
             dispatcher=dp,
@@ -98,7 +100,13 @@ async def main():
         # Keep running
         await asyncio.Event().wait()
     else:
-        logger.info("Starting in Polling mode...")
+        logger.info(f"Starting in Polling mode (Healthcheck on port {webhook_port})...")
+        
+        runner = web.AppRunner(app)
+        await runner.setup()
+        site = web.TCPSite(runner, '0.0.0.0', webhook_port)
+        await site.start()
+        
         try:
             await bot.delete_webhook(drop_pending_updates=True)
             await dp.start_polling(bot)
@@ -106,6 +114,8 @@ async def main():
             logger.error(f"Polling error: {e}")
         finally:
             await bot.session.close()
+            await runner.cleanup()
+
 
 if __name__ == "__main__":
     if sys.platform == "win32":
