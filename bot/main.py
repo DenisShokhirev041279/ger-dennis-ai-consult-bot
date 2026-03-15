@@ -28,8 +28,9 @@ async def main():
     await init_db()
 
     # Init Bot & Dispatcher
+    from utils.fsm_storage import SQLiteStorage
     bot = Bot(token=BOT_TOKEN)
-    dp = Dispatcher(storage=MemoryStorage())
+    dp = Dispatcher(storage=SQLiteStorage())
 
     # Register Middleware
     from bot.middleware.rate_limit import RateLimitMiddleware
