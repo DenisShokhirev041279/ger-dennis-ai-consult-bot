@@ -15,14 +15,26 @@ from utils.db_referrals import add_referral
 async def cmd_start(message: Message, command: CommandObject, state: FSMContext):
     # Capture referral
     referrer_id = None
-    if command.args and command.args.startswith("ref_"):
-        try:
-            referrer_id = int(command.args.split("_")[1])
-        except (ValueError, IndexError):
-            pass
+    promo_code = None
+    if command.args:
+        if command.args.startswith("ref_"):
+            try:
+                referrer_id = int(command.args.split("_")[1])
+            except (ValueError, IndexError):
+                pass
+        elif command.args.startswith("GIFT-"):
+            promo_code = command.args
 
     if referrer_id:
         await add_referral(referrer_id, message.from_user.id)
+        
+    if promo_code:
+        from utils.db_promo import use_promo_code
+        result = await use_promo_code(message.from_user.id, promo_code)
+        if result["success"]:
+            await message.answer(f"🎉 Промокод активирован!\n\n{result['message']}")
+        else:
+            await message.answer(f"❌ Ошибка активации промокода: {result['message']}")
 
     # Reset state
     await state.clear()
@@ -46,20 +58,13 @@ async def cmd_start(message: Message, command: CommandObject, state: FSMContext)
         [InlineKeyboardButton(text="Deutsch 🇩🇪", callback_data="lang_de")]
     ])
     
+    # If promo code was used, we might want to skip lang if they already have one,
+    # but for simplicity let's stick to the current flow.
     await message.answer(
         "Please select your language / Выберите язык / Bitte wählen Sie Ihre Sprache:",
         reply_markup=kb
     )
     await state.set_state(UserStates.LANGUAGE_SELECT)
-    
-    # Also attempt to show menu if they ignore lang? 
-    # The request says "Show persistent menu... on /start".
-    # Creating a reply keyboard AND inline keyboard in one message is impossible.
-    # So we send Inline for lang, then maybe text with Reply?
-    # Or just wait for lang selection.
-    
-    # Let's just rely on lang selection to trigger menu show.
-    # And if they are an old user, they can re-select lang to get menu.
 
 
 @router.message(Command("login"))

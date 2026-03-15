@@ -205,3 +205,73 @@ async def cmd_reset_user(message, command):
     except Exception as e:
         logger.error(f"Reset user failed: {e}")
         await message.answer(f"❌ Error: {e}")
+
+from utils.db_promo import create_promo_code, get_promo_stats
+
+@router.message(Command("promo"))
+async def cmd_promo(message: Message, command, bot: Bot):
+    if message.from_user.id not in ADMIN_IDS:
+        return
+        
+    args = command.args
+    if not args:
+        stats = await get_promo_stats()
+        text = (
+            f"🎁 *Управление промокодами*\n\n"
+            f"Всего создано: {stats['total']}\n"
+            f"Использовано раз: {stats['used']}\n\n"
+            f"Создать новый промокод:\n"
+            f"`/promo <тип> <количество> <использований> <дней_жизни>`\n\n"
+            f"Типы:\n"
+            f"- `msg` (бонусные сообщения, например `/promo msg 50`)\n"
+            f"- `premium` (дни тарифа Starter, например `/promo premium 30`)\n\n"
+            f"Пример: `/promo premium 7 100 30` (7 дней премиума, 100 активаций, работает 30 дней)"
+        )
+        await message.answer(text, parse_mode="Markdown")
+        return
+        
+    parts = args.split()
+    reward_type = "trial_messages"
+    reward_amount = 50
+    max_uses = 1
+    days_valid = 30
+    
+    if len(parts) >= 1:
+        if parts[0].lower() == "premium":
+            reward_type = "premium_days"
+            reward_amount = 7
+        elif parts[0].lower() == "msg":
+            reward_type = "trial_messages"
+            
+    if len(parts) >= 2:
+        try: reward_amount = int(parts[1])
+        except: pass
+        
+    if len(parts) >= 3:
+        try: max_uses = int(parts[2])
+        except: pass
+        
+    if len(parts) >= 4:
+        try: days_valid = int(parts[3])
+        except: pass
+        
+    code = await create_promo_code(
+        creator_id=message.from_user.id,
+        reward_type=reward_type,
+        reward_amount=reward_amount,
+        max_uses=max_uses,
+        days_valid=days_valid
+    )
+    
+    bot_info = await bot.get_me()
+    bot_username = bot_info.username
+    
+    await message.answer(
+        f"✅ *Промокод создан!*\n\n"
+        f"Код: `{code}`\n"
+        f"Ссылка: https://t.me/{bot_username}?start={code}\n\n"
+        f"Тип: {reward_type} ({reward_amount})\n"
+        f"Активаций: {max_uses}\n"
+        f"Срок годности (дней): {days_valid}", 
+        parse_mode="Markdown"
+    )

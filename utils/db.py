@@ -105,6 +105,28 @@ async def init_db():
         await db.execute("CREATE INDEX IF NOT EXISTS idx_trial_usage_user ON trial_usage(user_id)")
         await db.execute("CREATE INDEX IF NOT EXISTS idx_referrals_referrer ON referrals(referrer_id)")
 
+        # Promo codes
+        await db.execute("""
+            CREATE TABLE IF NOT EXISTS promo_codes (
+                code TEXT PRIMARY KEY,
+                creator_id INTEGER NOT NULL,
+                reward_type TEXT DEFAULT 'trial_messages',
+                reward_amount INTEGER DEFAULT 50,
+                max_uses INTEGER DEFAULT 1,
+                times_used INTEGER DEFAULT 0,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                expires_at TIMESTAMP
+            )
+        """)
+        await db.execute("""
+            CREATE TABLE IF NOT EXISTS promo_code_uses (
+                code TEXT,
+                user_id INTEGER,
+                used_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                PRIMARY KEY (code, user_id)
+            )
+        """)
+
         await db.commit()
     logger.info("Database initialized with Phase 1 tables.")
 
