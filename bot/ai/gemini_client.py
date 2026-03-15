@@ -51,7 +51,7 @@ async def merge_reference_photos(image_paths: list[str], user_prompt: str = "") 
 
         try:
             response = await _client.aio.models.generate_content(
-                model="gemini-1.5-pro",
+                model="gemini-2.5-flash-lite",
                 contents=pil_images + [merge_prompt],
             )
             generated_prompt = response.text
@@ -102,7 +102,7 @@ async def brand_audit(image_path: str) -> str:
         )
 
         response = await _client.aio.models.generate_content(
-            model="gemini-1.5-pro",
+            model="gemini-2.5-flash-lite",
             contents=[img, prompt],
         )
 
