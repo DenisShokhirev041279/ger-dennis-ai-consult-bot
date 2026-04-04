@@ -7,6 +7,7 @@ from utils.db import get_user_lang
 from utils.i18n import get_text
 from utils.config import ADMIN_IDS, TRIAL_MAX_MESSAGES
 from utils.db_helpers import get_trial_usage_today, get_trial_usage_total, increment_trial_messages, get_bonus_credits, update_bonus_credits
+from utils.config import FREE_DAILY_MESSAGES
 from utils.subscription import check_subscription
 from utils.security import is_prompt_injection, sanitize_user_input
 from utils.db_helpers_memory import save_message, get_conversation_history, get_current_session_id
@@ -54,16 +55,16 @@ async def consult_handler(message: Message, state: FSMContext):
     is_paid = sub_data["has_subscription"]
     mode = "paid" if is_paid else "trial"
 
-    # Trial logic
+    # Trial logic — daily limit
     if not is_paid:
-        msg_count = await get_trial_usage_total(user_id)
+        msg_today, _ = await get_trial_usage_today(user_id)
         bonus = await get_bonus_credits(user_id)
-        total_allowed = TRIAL_MAX_MESSAGES + bonus
+        daily_allowed = FREE_DAILY_MESSAGES + bonus
 
-        if msg_count >= total_allowed:
+        if msg_today >= daily_allowed:
             _trial_texts = {
-                "ru": "🔒 Пробный период исчерпан.\n\nОформите подписку для продолжения или пригласите друга:",
-                "de": "🔒 Testzeitraum abgelaufen.\n\nAbonnieren Sie oder laden Sie einen Freund ein:",
+                "ru": f"🔒 Дневной лимит исчерпан ({FREE_DAILY_MESSAGES} сообщений/день на Free).\n\nОформите подписку или пригласите друга (+3 сообщения):",
+                "de": f"🔒 Tageslimit erreicht ({FREE_DAILY_MESSAGES} Nachrichten/Tag kostenlos).\n\nAbonnieren Sie oder laden Sie einen Freund ein (+3 Nachrichten):",
             }
             _sub_btn = {"ru": "⭐ Оформить подписку", "de": "⭐ Abonnieren"}.get(user_lang, "⭐ Subscribe")
             _ref_btn = {"ru": "🤝 Пригласить друга (+3 сообщения)", "de": "🤝 Freund einladen (+3)"}.get(user_lang, "🤝 Refer a Friend (+3 msgs)")
@@ -71,18 +72,14 @@ async def consult_handler(message: Message, state: FSMContext):
                 [InlineKeyboardButton(text=_sub_btn, callback_data="subscribe_menu")],
                 [InlineKeyboardButton(text=_ref_btn, callback_data="menu_referrals")]
             ])
-            await message.answer(_trial_texts.get(user_lang, "🔒 Trial limit reached. Please subscribe or refer a friend."), reply_markup=kb)
+            await message.answer(_trial_texts.get(user_lang, f"🔒 Daily limit reached ({FREE_DAILY_MESSAGES} messages/day on Free). Please subscribe or refer a friend."), reply_markup=kb)
             return
 
-        if msg_count >= TRIAL_MAX_MESSAGES:
+        if msg_today >= FREE_DAILY_MESSAGES:
             await update_bonus_credits(user_id, -1)
             await track(user_id, "bonus_credit_used")
 
         await increment_trial_messages(user_id)
-
-        # Progressive: shorter response in second half of trial
-        if msg_count >= TRIAL_MAX_MESSAGES // 2:
-            mode = "trial_short"
 
     # Security check
     user_input = sanitize_user_input(message.text)
@@ -103,10 +100,16 @@ async def consult_handler(message: Message, state: FSMContext):
     processing_msg = await message.answer(get_text(user_lang, "processing"))
     response = await get_ai_response(lang=user_lang, mode=mode, messages=current_messages)
 
-    # Watermark for trial users only
-    if not is_paid:
-        response += "\n\n— Powered by Ger Dennis AI | @ger_dennis_ai"
-
     await save_message(user_id, session_id, "assistant", response)
     await track(user_id, "consultation_message", {"mode": mode, "is_paid": is_paid})
-    await processing_msg.edit_text(response)
+
+    # Split long responses (Telegram 4096 char limit)
+    MAX_LEN = 4000
+    if len(response) <= MAX_LEN:
+        await processing_msg.edit_text(response)
+    else:
+        await processing_msg.delete()
+        chunks = [response[i:i+MAX_LEN] for i in range(0, len(response), MAX_LEN)]
+        for idx, chunk in enumerate(chunks):
+            suffix = f"\n\n_{idx+1}/{len(chunks)}_" if len(chunks) > 1 else ""
+            await message.answer(chunk + suffix, parse_mode=None)

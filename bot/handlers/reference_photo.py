@@ -35,21 +35,24 @@ def get_photo_keyboard(lang: str) -> ReplyKeyboardMarkup:
 def get_intro_text(lang: str) -> str:
     texts = {
         "ru": (
-            "📸 *Референс-фото*\n\n"
-            "Отправьте от 1 до 14 фотографий — я их объединю и создам новое изображение.\n\n"
-            "Можно добавить текстовое описание что именно хотите получить.\n\n"
+            "🎨 *AI Визуальный Концепт*\n\n"
+            "Отправьте от 1 до 14 референсных фото — AI проанализирует стиль, атмосферу и цвета "
+            "и создаст уникальный визуальный концепт, вдохновлённый вашими референсами.\n\n"
+            "💡 Добавьте текстовое описание — например: «в стиле editorial», «тёмная атмосфера», «минимализм»\n\n"
             "Когда загрузите все фото — нажмите *✅ Готово*"
         ),
         "en": (
-            "📸 *Reference Photo*\n\n"
-            "Send 1 to 14 photos — I'll merge them into a new image.\n\n"
-            "You can also send text describing what you want to create.\n\n"
+            "🎨 *AI Visual Concept*\n\n"
+            "Send 1 to 14 reference photos — AI will analyze their style, mood, and colors "
+            "to generate a unique visual concept inspired by your references.\n\n"
+            "💡 Add text direction — e.g.: 'editorial style', 'dark atmosphere', 'minimalist'\n\n"
             "When done uploading — tap *✅ Done*"
         ),
         "de": (
-            "📸 *Referenzfoto*\n\n"
-            "Senden Sie 1 bis 14 Fotos — ich füge sie zu einem neuen Bild zusammen.\n\n"
-            "Sie können auch Text hinzufügen, der beschreibt, was Sie erstellen möchten.\n\n"
+            "🎨 *KI-Visualkonzept*\n\n"
+            "Senden Sie 1 bis 14 Referenzfotos — KI analysiert Stil, Stimmung und Farben "
+            "und erstellt ein einzigartiges visuelles Konzept, inspiriert von Ihren Referenzen.\n\n"
+            "💡 Fügen Sie Textrichtung hinzu — z.B.: 'Editorial-Stil', 'dunkle Atmosphäre', 'Minimalismus'\n\n"
             "Wenn Sie fertig sind — tippen Sie auf *✅ Fertig*"
         ),
     }
@@ -65,7 +68,7 @@ def get_status_text(lang: str, count: int) -> str:
     return texts.get(lang, texts["en"])
 
 
-@router.message(F.text.in_({"🧩 Референс-Фото", "🧩 Reference Photo", "🧩 Referenzfoto"}))
+@router.message(F.text.in_({"🎨 AI Концепт", "🎨 AI Concept", "🎨 AI Konzept", "🧩 Референс-Фото", "🧩 Reference Photo", "🧩 Referenzfoto"}))
 async def ref_photo_start(message: Message, state: FSMContext):
     user_id = message.from_user.id
     lang = await get_user_lang(user_id)
@@ -197,9 +200,9 @@ async def ref_photo_done(message: Message, state: FSMContext, bot: Bot):
         await status_msg.delete()
 
         captions = {
-            "ru": "✅ Готово! Вот ваше объединённое изображение.",
-            "en": "✅ Done! Here is your merged image.",
-            "de": "✅ Fertig! Hier ist Ihr zusammengeführtes Bild.",
+            "ru": "✅ Готово! Вот ваш AI визуальный концепт по референсам.",
+            "en": "✅ Done! Here is your AI visual concept based on your references.",
+            "de": "✅ Fertig! Hier ist Ihr KI-Visualkonzept basierend auf Ihren Referenzen.",
         }
         await message.answer_photo(
             result_image_url,

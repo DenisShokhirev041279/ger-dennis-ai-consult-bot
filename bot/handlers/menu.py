@@ -17,8 +17,7 @@ async def get_main_keyboard(user_lang):
     
     # Reference Photo Button (Row 2 middle or Row 3?)
     if GEMINI_API_KEY:
-        ref_btn_text = "🧩 Референс-Фото" if user_lang == "ru" else "🧩 Reference Photo"
-        # Insert in new row or append
+        ref_btn_text = "🎨 AI Концепт" if user_lang == "ru" else ("🎨 AI Konzept" if user_lang == "de" else "🎨 AI Concept")
         buttons.insert(1, [KeyboardButton(text=ref_btn_text)])
     
     # Referral button
@@ -64,7 +63,7 @@ async def menu_help(message: Message):
             "• /mystatus — ваша подписка и остаток сообщений\n"
             "• /newsession — начать новый диалог\n"
             "• /start — главное меню\n\n"
-            "📩 Поддержка: @ger_dennis"
+            "💬 Нужна живая консультация? @ger_denis_sh"
         )
     else:
         text = (
@@ -73,13 +72,33 @@ async def menu_help(message: Message):
             "• /mystatus — your subscription & messages left\n"
             "• /newsession — start a new conversation\n"
             "• /start — main menu\n\n"
-            "📩 Support: @ger_dennis"
+            "💬 Need a live consultation? @ger_denis_sh"
         )
     await message.answer(text, parse_mode="Markdown")
 
 @router.message(F.text.in_({"Портфолио", "Portfolio"}))
 async def menu_portfolio(message: Message):
-    await message.answer("Portfolio: https://t.me/ger_dennis_ai")
+    lang = await get_user_lang(message.from_user.id)
+    if lang == "ru":
+        await message.answer(
+            "🤖 *Что умеет бот:*\n\n"
+            "• 💬 Консультации по AI и автоматизации\n"
+            "• 🎨 AI-инструменты: генерация картинок, удаление фона\n"
+            "• 📸 Визуальные концепции из ваших референсов\n"
+            "• 📝 Улучшение и переработка текстов\n\n"
+            "💬 Нужна живая консультация? @ger_denis_sh",
+            parse_mode="Markdown"
+        )
+    else:
+        await message.answer(
+            "🤖 *What this bot can do:*\n\n"
+            "• 💬 AI and automation consulting\n"
+            "• 🎨 AI tools: image generation, background removal\n"
+            "• 📸 Visual concepts from your reference photos\n"
+            "• 📝 Text improvement and rewriting\n\n"
+            "💬 Need a live consultation? @ger_denis_sh",
+            parse_mode="Markdown"
+        )
 
 @router.message(F.text.in_({"⭐ Подписка", "⭐ Subscribe / My Plan"}))
 async def menu_subscribe_btn(message: Message, state):
@@ -146,3 +165,35 @@ async def menu_referrals(message: Message):
         )
 
     await message.answer(msg, parse_mode="Markdown")
+
+
+from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+
+@router.message(F.text.in_({"🎨 AI Инструменты", "🎨 AI Tools", "🎨 KI Werkzeuge"}))
+async def menu_ai_tools(message: Message):
+    lang = await get_user_lang(message.from_user.id)
+    if lang == "ru":
+        text = "🎨 *AI Инструменты*\n\nВыберите инструмент:"
+        kb = InlineKeyboardMarkup(inline_keyboard=[
+            [InlineKeyboardButton(text="✂️ Удалить фон (Remove.bg)", callback_data="cv_product_photo")],
+            [InlineKeyboardButton(text="📐 Social Media Kit (1:1, 4:5, 9:16)", callback_data="cv_social_kit")],
+            [InlineKeyboardButton(text="🔍 Brand Audit (анализ визуала)", callback_data="cv_brand_audit")],
+            [InlineKeyboardButton(text="🎬 AI Анимация (MagicHour)", callback_data="cv_ai_video")],
+        ])
+    elif lang == "de":
+        text = "🎨 *KI Werkzeuge*\n\nWählen Sie ein Werkzeug:"
+        kb = InlineKeyboardMarkup(inline_keyboard=[
+            [InlineKeyboardButton(text="✂️ Hintergrund entfernen (Remove.bg)", callback_data="cv_product_photo")],
+            [InlineKeyboardButton(text="📐 Social Media Kit (1:1, 4:5, 9:16)", callback_data="cv_social_kit")],
+            [InlineKeyboardButton(text="🔍 Brand Audit (visuelle Analyse)", callback_data="cv_brand_audit")],
+            [InlineKeyboardButton(text="🎬 KI Animation (MagicHour)", callback_data="cv_ai_video")],
+        ])
+    else:
+        text = "🎨 *AI Tools*\n\nChoose a tool:"
+        kb = InlineKeyboardMarkup(inline_keyboard=[
+            [InlineKeyboardButton(text="✂️ Remove Background (Remove.bg)", callback_data="cv_product_photo")],
+            [InlineKeyboardButton(text="📐 Social Media Kit (1:1, 4:5, 9:16)", callback_data="cv_social_kit")],
+            [InlineKeyboardButton(text="🔍 Brand Audit (visual analysis)", callback_data="cv_brand_audit")],
+            [InlineKeyboardButton(text="🎬 AI Animation (MagicHour)", callback_data="cv_ai_video")],
+        ])
+    await message.answer(text, reply_markup=kb, parse_mode="Markdown")

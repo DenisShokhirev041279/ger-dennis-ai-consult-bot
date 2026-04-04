@@ -57,12 +57,12 @@ async def cmd_start(message: Message, command: CommandObject, state: FSMContext)
         [InlineKeyboardButton(text="English 🇬🇧", callback_data="lang_en")],
         [InlineKeyboardButton(text="Deutsch 🇩🇪", callback_data="lang_de")]
     ])
-    
-    # If promo code was used, we might want to skip lang if they already have one,
-    # but for simplicity let's stick to the current flow.
+
     await message.answer(
+        "🤖 *AI Consultant Bot*\n\n"
         "Please select your language / Выберите язык / Bitte wählen Sie Ihre Sprache:",
-        reply_markup=kb
+        reply_markup=kb,
+        parse_mode="Markdown"
     )
     await state.set_state(UserStates.LANGUAGE_SELECT)
 
@@ -86,8 +86,8 @@ async def cmd_mystatus(message: Message):
     lang = await get_user_lang(user_id)
 
     from utils.subscription import check_subscription
-    from utils.db_helpers import get_trial_usage_total, get_bonus_credits
-    from utils.config import TRIAL_MAX_MESSAGES, ADMIN_IDS
+    from utils.db_helpers import get_trial_usage_today, get_bonus_credits
+    from utils.config import FREE_DAILY_MESSAGES, ADMIN_IDS
 
     # Admin — special status
     if user_id in ADMIN_IDS:
@@ -95,7 +95,7 @@ async def cmd_mystatus(message: Message):
         return
 
     sub_data = await check_subscription(user_id)
-    msg_today = await get_trial_usage_total(user_id)
+    msg_today, _ = await get_trial_usage_today(user_id)
     bonus = await get_bonus_credits(user_id)
 
     if sub_data["has_subscription"]:
@@ -126,27 +126,29 @@ async def cmd_mystatus(message: Message):
             )
     else:
         used = msg_today
-        total = TRIAL_MAX_MESSAGES + bonus
-        left = max(0, total - used)
-        bar_filled = min(10, used) * "▓"
-        bar_empty = (10 - min(10, used)) * "░"
+        daily_limit = FREE_DAILY_MESSAGES + bonus
+        left = max(0, daily_limit - used)
+        bar_filled = min(5, used) * "▓"
+        bar_empty = (5 - min(5, used)) * "░"
         if lang == "ru":
             text = (
-                f"🆓 *Пробный период*\n\n"
-                f"{bar_filled}{bar_empty} {used}/{total}\n\n"
-                f"💬 Использовано: *{used}* из {total} сообщений\n"
-                f"💬 Осталось: *{left}*\n"
-                + (f"🎁 Бонусных сообщений: *{bonus}*\n" if bonus > 0 else "")
-                + f"\n💡 Для полного доступа без ограничений:\n👉 ⭐ Подписка в меню"
+                f"🆓 *Free план*\n\n"
+                f"{bar_filled}{bar_empty} {used}/{daily_limit} сегодня\n\n"
+                f"💬 Использовано сегодня: *{used}* из {daily_limit}\n"
+                f"💬 Осталось сегодня: *{left}*\n"
+                + (f"🎁 Бонусных: *{bonus}* (добавятся к лимиту)\n" if bonus > 0 else "")
+                + f"\n🔄 Лимит сбрасывается каждый день\n"
+                + f"💡 Для безлимитного доступа:\n👉 ⭐ Подписка в меню"
             )
         else:
             text = (
-                f"🆓 *Free trial*\n\n"
-                f"{bar_filled}{bar_empty} {used}/{total}\n\n"
-                f"💬 Used: *{used}* of {total} messages\n"
-                f"💬 Remaining: *{left}*\n"
-                + (f"🎁 Bonus credits: *{bonus}*\n" if bonus > 0 else "")
-                + f"\n💡 For unlimited access:\n👉 ⭐ Subscribe in menu"
+                f"🆓 *Free plan*\n\n"
+                f"{bar_filled}{bar_empty} {used}/{daily_limit} today\n\n"
+                f"💬 Used today: *{used}* of {daily_limit}\n"
+                f"💬 Remaining today: *{left}*\n"
+                + (f"🎁 Bonus credits: *{bonus}* (added to daily limit)\n" if bonus > 0 else "")
+                + f"\n🔄 Limit resets every day\n"
+                + f"💡 For unlimited access:\n👉 ⭐ Subscribe in menu"
             )
 
     await message.answer(text, parse_mode="Markdown")

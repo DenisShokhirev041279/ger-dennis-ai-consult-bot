@@ -1,6 +1,6 @@
 STRINGS = {
     "en": {
-        "welcome": "Welcome! I am Dennis, an AI Systems Architect. Please select an option:",
+        "welcome": "Welcome! I'm your AI Consultant — ask me anything about AI, automation, or business strategy:",
         "choose_lang": "Please select your language / Выберите язык / Bitte wählen Sie Ihre Sprache:",
         "menu_services": "Services",
         "menu_book": "Book Consultation",
@@ -34,7 +34,7 @@ STRINGS = {
         "ref_photo_limit": "Daily reference photo limit reached. Please book a session."
     },
     "ru": {
-        "welcome": "Привет! Я Деннис, AI Systems Architect. Выберите опцию:",
+        "welcome": "Привет! Я ваш AI-консультант — спрашивайте про AI, автоматизацию или стратегию бизнеса:",
         "choose_lang": "Please select your language / Выберите язык / Bitte wählen Sie Ihre Sprache:",
         "menu_services": "Услуги",
         "menu_book": "Забронировать",
@@ -68,7 +68,7 @@ STRINGS = {
         "ref_photo_limit": "Дневной лимит референсных фото исчерпан. Пожалуйста, забронируйте сессию."
     },
     "de": {
-        "welcome": "Willkommen! Ich bin Dennis, AI Systems Architect. Bitte wählen Sie eine Option:",
+        "welcome": "Willkommen! Ich bin Ihr KI-Berater — fragen Sie mich zu KI, Automatisierung oder Geschäftsstrategie:",
         "choose_lang": "Please select your language / Выберите язык / Bitte wählen Sie Ihre Sprache:",
         "menu_services": "Dienstleistungen",
         "menu_book": "Buchen",

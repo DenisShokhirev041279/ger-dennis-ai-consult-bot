@@ -37,7 +37,7 @@ async def main():
         return
 
     # 1. Test Remove.bg
-    if False and rb_key:
+    if rb_key:
         print("\nTesting Remove.bg...")
         try:
             with open("test_image.jpg", "rb") as f:
@@ -51,9 +51,9 @@ async def main():
                 print("[FAIL] Remove.bg: Empty response")
         except Exception as e:
             print(f"[ERROR] Remove.bg: {e}")
-    
+
     # 2. Test Gemini Brand Audit
-    if False and gemini_key:
+    if gemini_key:
         print("\nTesting Gemini Brand Audit...")
         try:
             res = await brand_audit("test_image.jpg")
@@ -63,8 +63,8 @@ async def main():
             else:
                 print(f"[FAIL] Gemini Brand Audit: {res}")
         except Exception as e:
-             print(f"[ERROR] Gemini Brand Audit: {e}")
-             
+            print(f"[ERROR] Gemini Brand Audit: {e}")
+
     # 3. Test MagicHour
     if mh_key:
         print("\nTesting MagicHour Video Generation...")

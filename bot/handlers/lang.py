@@ -30,7 +30,7 @@ async def show_main_menu(message, lang_code, state):
         [InlineKeyboardButton(text=get_text(lang_code, "menu_book"), callback_data="menu_book")],
         [InlineKeyboardButton(text=get_text(lang_code, "menu_services"), callback_data="menu_services")],
         [InlineKeyboardButton(text=get_text(lang_code, "menu_portfolio"), callback_data="menu_portfolio")],
-        [InlineKeyboardButton(text=get_text(lang_code, "menu_channel"), url="https://t.me/ger_dennis_ai")]
+        [InlineKeyboardButton(text=get_text(lang_code, "menu_portfolio"), callback_data="menu_portfolio")]
     ])
     
     await message.answer(text, reply_markup=kb)

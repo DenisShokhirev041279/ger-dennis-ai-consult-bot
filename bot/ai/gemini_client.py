@@ -17,10 +17,12 @@ else:
 
 async def merge_reference_photos(image_paths: list[str], user_prompt: str = "") -> str:
     """
-    NanoBanana Pro Implementation:
-    1. Uploads 2-14 images to Gemini 1.5 Pro.
-    2. Asks for a high-quality DALL-E 3 prompt to merge them.
-    3. Generates the final image via DALL-E 3.
+    AI Visual Concept Generator:
+    1. Analyzes reference images with Gemini Vision.
+    2. Extracts style, mood, color palette, composition elements.
+    3. Generates a creative visual concept via DALL-E 3.
+
+    Note: This creates an artistic interpretation, not identity-preserving merge.
     """
     if not _client:
         raise Exception("Gemini API Key missing")
@@ -38,15 +40,23 @@ async def merge_reference_photos(image_paths: list[str], user_prompt: str = "") 
                 continue
 
         if len(pil_images) < 1:
-            raise ValueError("Need at least 1 valid image for merge.")
+            raise ValueError("Need at least 1 valid image for concept generation.")
 
+        user_context = f"\nUser's creative direction: {user_prompt}" if user_prompt.strip() else ""
         merge_prompt = (
-            "Analyze these reference images. "
-            "Create a detailed image generation prompt that merges these concepts into one consistent, high-quality image. "
-            "Preserve identity, style, and consistency. "
-            f"Additional User Instructions: {user_prompt} "
-            "Output ONLY the prompt for the image generator, nothing else. "
-            "Focus on photorealism and high detail."
+            "You are a world-class art director analyzing reference images to create a stunning visual concept.\n\n"
+            "Analyze these reference images carefully. Extract:\n"
+            "- Visual style (photorealistic, cinematic, editorial, artistic, etc.)\n"
+            "- Color palette (dominant colors, mood, temperature)\n"
+            "- Composition elements (layout, lighting, atmosphere)\n"
+            "- Textures, materials, patterns\n"
+            "- Overall mood and emotional feel\n\n"
+            f"{user_context}\n\n"
+            "Now write a DALL-E 3 image generation prompt that synthesizes all these elements "
+            "into one cohesive, high-quality visual concept. "
+            "The prompt should be specific, evocative, and describe a single powerful image. "
+            "Include technical photography/art terms: lighting setup, camera angle, style references. "
+            "Output ONLY the prompt text, nothing else. Maximum 800 characters."
         )
 
         try:
