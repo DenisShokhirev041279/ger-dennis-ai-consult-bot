@@ -24,21 +24,6 @@ async def check_subscription(user_id: int) -> dict:
     }
     
     async with aiosqlite.connect(DB_PATH) as db:
-        async with db.execute("""
-            SELECT plan, expires_at, daily_limit 
-            FROM subscriptions 
-            WHERE user_id = ? AND status = 'active'
-            ORDER BY expires_at DESC LIMIT 1
-        """, (user_id,)) as cursor:
-            row = await cursor.fetchone()
-            
-            if row:
-                plan_key = row[0]
-                # In SQLite, CURRENT_TIMESTAMP is string like 'YYYY-MM-DD HH:MM:SS'
-                # But we might have stored integer timestamps. Let's support both or just integers for simplicity.
-                # Since db.py used TIMESTAMP DEFAULT CURRENT_TIMESTAMP, it's string.
-                # Let's compare string dates or just parse it.
-                # Actually, sqlite date/time functions are better.
         # Check active non-expired subscription
         async with db.execute("""
             SELECT id, plan, daily_limit, expires_at 

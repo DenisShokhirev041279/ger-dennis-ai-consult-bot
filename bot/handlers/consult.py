@@ -40,20 +40,21 @@ async def consult_handler(message: Message, state: FSMContext):
         await processing_msg.edit_text(response)
         return
 
-    # Rate Limiter
-    from utils.rate_limiter import is_rate_limited
-    if is_rate_limited(user_id):
-        _rate_msg = {
-            "ru": "⚠️ Слишком много сообщений. Подождите минуту.",
-            "de": "⚠️ Zu viele Nachrichten. Bitte warten Sie eine Minute.",
-        }.get(user_lang, "⚠️ Too many messages. Please wait a minute.")
-        await message.answer(_rate_msg)
-        return
+    # Rate limiting is handled by middleware (RateLimitMiddleware)
 
     # Check Subscription
     sub_data = await check_subscription(user_id)
     is_paid = sub_data["has_subscription"]
     mode = "paid" if is_paid else "trial"
+
+    # Daily limit check for paid users (Starter has 30/day)
+    if is_paid and sub_data["daily_remaining"] <= 0:
+        _paid_limit = {
+            "ru": "🔒 Дневной лимит вашего тарифа исчерпан. Завтра лимит обновится, или перейдите на Pro для безлимита.",
+            "de": "🔒 Tageslimit Ihres Tarifs erreicht. Morgen wird es zurückgesetzt, oder upgraden Sie auf Pro.",
+        }.get(user_lang, "🔒 Daily limit for your plan reached. Resets tomorrow, or upgrade to Pro for unlimited.")
+        await message.answer(_paid_limit)
+        return
 
     # Trial logic — daily limit
     if not is_paid:

@@ -23,15 +23,3 @@ async def lang_selected(callback: CallbackQuery, state: FSMContext):
     await show_main_menu(callback.message, user_id)
     await callback.answer()
 
-async def show_main_menu(message, lang_code, state):
-    text = get_text(lang_code, "welcome")
-    
-    kb = InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text=get_text(lang_code, "menu_book"), callback_data="menu_book")],
-        [InlineKeyboardButton(text=get_text(lang_code, "menu_services"), callback_data="menu_services")],
-        [InlineKeyboardButton(text=get_text(lang_code, "menu_portfolio"), callback_data="menu_portfolio")],
-        [InlineKeyboardButton(text=get_text(lang_code, "menu_portfolio"), callback_data="menu_portfolio")]
-    ])
-    
-    await message.answer(text, reply_markup=kb)
-    await state.set_state(UserStates.MAIN_MENU)
