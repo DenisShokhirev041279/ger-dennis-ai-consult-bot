@@ -8,34 +8,20 @@ from bot.handlers.bookings import booking_start
 router = Router()
 
 async def get_main_keyboard(user_lang):
-    # Row 1: Book, Services
-    row1 = [KeyboardButton(text=get_text(user_lang, "menu_book")), KeyboardButton(text=get_text(user_lang, "menu_services"))]
-    # Row 2: Portfolio, Channel
-    row2 = [KeyboardButton(text=get_text(user_lang, "menu_portfolio")), KeyboardButton(text=get_text(user_lang, "menu_channel"))]
-    
-    buttons = [row1, row2]
-    
-    # Reference Photo Button (Row 2 middle or Row 3?)
-    if GEMINI_API_KEY:
-        ref_btn_text = "🎨 AI Концепт" if user_lang == "ru" else ("🎨 AI Konzept" if user_lang == "de" else "🎨 AI Concept")
-        buttons.insert(1, [KeyboardButton(text=ref_btn_text)])
-    
-    # Referral button
-    ref_btn_text = "🤝 Рефералы" if user_lang == "ru" else "🤝 Referrals"
-    
-    # Subscribe / My Plan
     sub_text = "⭐ Подписка" if user_lang == "ru" else "⭐ Subscribe / My Plan"
-    
-    # AI Tools
-    tools_text = "🎨 AI Tools" if user_lang != "de" else "🎨 KI Werkzeuge" # Basic DE support
-    if user_lang == "ru": tools_text = "🎨 AI Инструменты"
+    tools_text = "🎨 AI Инструменты" if user_lang == "ru" else ("🎨 KI Werkzeuge" if user_lang == "de" else "🎨 AI Tools")
+    ref_btn_text = "🤝 Рефералы" if user_lang == "ru" else "🤝 Referrals"
+    concept_text = "🎨 AI Концепт" if user_lang == "ru" else ("🎨 AI Konzept" if user_lang == "de" else "🎨 AI Concept")
 
-    buttons.insert(0, [KeyboardButton(text=sub_text)])
+    buttons = [
+        [KeyboardButton(text=sub_text)],
+        [KeyboardButton(text=get_text(user_lang, "menu_book")), KeyboardButton(text=get_text(user_lang, "menu_services"))],
+    ]
+    if GEMINI_API_KEY:
+        buttons.append([KeyboardButton(text=concept_text)])
     buttons.append([KeyboardButton(text=ref_btn_text), KeyboardButton(text=tools_text)])
-    
-    # Help row
     buttons.append([KeyboardButton(text="Help / Помощь")])
-    
+
     return ReplyKeyboardMarkup(keyboard=buttons, resize_keyboard=True, one_time_keyboard=False)
 
 async def show_main_menu(message: Message, user_id: int):
@@ -63,7 +49,7 @@ async def menu_help(message: Message):
             "• /mystatus — ваша подписка и остаток сообщений\n"
             "• /newsession — начать новый диалог\n"
             "• /start — главное меню\n\n"
-            "💬 Нужна живая консультация? @ger_denis_sh"
+            "💬 Нужна живая консультация? @ger\\_denis\\_sh"
         )
     else:
         text = (
@@ -72,33 +58,9 @@ async def menu_help(message: Message):
             "• /mystatus — your subscription & messages left\n"
             "• /newsession — start a new conversation\n"
             "• /start — main menu\n\n"
-            "💬 Need a live consultation? @ger_denis_sh"
+            "💬 Need a live consultation? @ger\\_denis\\_sh"
         )
     await message.answer(text, parse_mode="Markdown")
-
-@router.message(F.text.in_({"Портфолио", "Portfolio"}))
-async def menu_portfolio(message: Message):
-    lang = await get_user_lang(message.from_user.id)
-    if lang == "ru":
-        await message.answer(
-            "🤖 *Что умеет бот:*\n\n"
-            "• 💬 Консультации по AI и автоматизации\n"
-            "• 🎨 AI-инструменты: генерация картинок, удаление фона\n"
-            "• 📸 Визуальные концепции из ваших референсов\n"
-            "• 📝 Улучшение и переработка текстов\n\n"
-            "💬 Нужна живая консультация? @ger_denis_sh",
-            parse_mode="Markdown"
-        )
-    else:
-        await message.answer(
-            "🤖 *What this bot can do:*\n\n"
-            "• 💬 AI and automation consulting\n"
-            "• 🎨 AI tools: image generation, background removal\n"
-            "• 📸 Visual concepts from your reference photos\n"
-            "• 📝 Text improvement and rewriting\n\n"
-            "💬 Need a live consultation? @ger_denis_sh",
-            parse_mode="Markdown"
-        )
 
 @router.message(F.text.in_({"⭐ Подписка", "⭐ Subscribe / My Plan"}))
 async def menu_subscribe_btn(message: Message, state):

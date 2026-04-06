@@ -42,21 +42,24 @@ async def merge_reference_photos(image_paths: list[str], user_prompt: str = "") 
         if len(pil_images) < 1:
             raise ValueError("Need at least 1 valid image for concept generation.")
 
-        user_context = f"\nUser's creative direction: {user_prompt}" if user_prompt.strip() else ""
+        if user_prompt.strip():
+            user_context = f"\nUser's creative direction: {user_prompt}\nEnhance and expand this direction while staying true to the user's intent."
+        else:
+            user_context = "\nNo specific direction given — create the most visually striking concept possible from the reference images."
         merge_prompt = (
-            "You are a world-class art director analyzing reference images to create a stunning visual concept.\n\n"
-            "Analyze these reference images carefully. Extract:\n"
+            "You are a world-class art director creating a DALL-E 3 prompt from reference images.\n\n"
+            "IMPORTANT: DALL-E 3 cannot reproduce real faces or identities. Focus on STYLE, not people.\n\n"
+            "Analyze the reference images. Extract:\n"
             "- Visual style (photorealistic, cinematic, editorial, artistic, etc.)\n"
             "- Color palette (dominant colors, mood, temperature)\n"
-            "- Composition elements (layout, lighting, atmosphere)\n"
-            "- Textures, materials, patterns\n"
+            "- Composition (layout, lighting, atmosphere)\n"
+            "- Textures, materials, key visual elements\n"
             "- Overall mood and emotional feel\n\n"
             f"{user_context}\n\n"
-            "Now write a DALL-E 3 image generation prompt that synthesizes all these elements "
-            "into one cohesive, high-quality visual concept. "
-            "The prompt should be specific, evocative, and describe a single powerful image. "
-            "Include technical photography/art terms: lighting setup, camera angle, style references. "
-            "Output ONLY the prompt text, nothing else. Maximum 800 characters."
+            "Write a DALL-E 3 prompt that synthesizes these elements into one stunning image. "
+            "Be specific: lighting setup, camera angle, style references, color grading. "
+            "Do NOT describe specific people or faces. Describe scenes, objects, compositions. "
+            "Output ONLY the prompt. Maximum 800 characters."
         )
 
         try:
