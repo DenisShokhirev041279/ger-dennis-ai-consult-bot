@@ -13,14 +13,16 @@ async def get_main_keyboard(user_lang):
     ref_btn_text = "🤝 Рефералы" if user_lang == "ru" else "🤝 Referrals"
     concept_text = "🎨 AI Концепт" if user_lang == "ru" else ("🎨 AI Konzept" if user_lang == "de" else "🎨 AI Concept")
 
+    book_text = "📅 Консультация" if user_lang == "ru" else ("📅 Beratung" if user_lang == "de" else "📅 Consultation")
+
     buttons = [
-        [KeyboardButton(text=sub_text)],
-        [KeyboardButton(text=get_text(user_lang, "menu_book")), KeyboardButton(text=get_text(user_lang, "menu_services"))],
+        [KeyboardButton(text=sub_text), KeyboardButton(text=book_text)],
     ]
     if GEMINI_API_KEY:
-        buttons.append([KeyboardButton(text=concept_text)])
-    buttons.append([KeyboardButton(text=ref_btn_text), KeyboardButton(text=tools_text)])
-    buttons.append([KeyboardButton(text="Help / Помощь")])
+        buttons.append([KeyboardButton(text=concept_text), KeyboardButton(text=tools_text)])
+    else:
+        buttons.append([KeyboardButton(text=tools_text)])
+    buttons.append([KeyboardButton(text=ref_btn_text), KeyboardButton(text="Help / Помощь")])
 
     return ReplyKeyboardMarkup(keyboard=buttons, resize_keyboard=True, one_time_keyboard=False)
 
@@ -30,13 +32,8 @@ async def show_main_menu(message: Message, user_id: int):
     await message.answer(get_text(user_lang, "welcome"), reply_markup=kb)
 
 # Handle Menu Clicks
-@router.message(F.text.in_({"Забронировать", "Book Consultation", "Buchen"}))
+@router.message(F.text.in_({"📅 Консультация", "📅 Consultation", "📅 Beratung", "Забронировать", "Book Consultation", "Buchen", "Услуги", "Services", "Dienstleistungen"}))
 async def menu_book(message: Message, state):
-    # Trigger existing booking flow
-    await booking_start(message, state)
-
-@router.message(F.text.in_({"Услуги", "Services", "Dienstleistungen"}))
-async def menu_services(message: Message, state):
     await booking_start(message, state)
 
 @router.message(F.text.contains("Help") | F.text.contains("Помощь"))
