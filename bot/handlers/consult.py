@@ -67,7 +67,7 @@ async def consult_handler(message: Message, state: FSMContext):
                 "de": f"🔒 Tageslimit erreicht ({FREE_DAILY_MESSAGES} Nachrichten/Tag kostenlos).\n\nAbonnieren Sie oder laden Sie einen Freund ein (+3 Nachrichten):",
             }
             _sub_btn = {"ru": "⭐ Оформить подписку", "de": "⭐ Abonnieren"}.get(user_lang, "⭐ Subscribe")
-            _ref_btn = {"ru": "🤝 Пригласить друга (+3 сообщения)", "de": "🤝 Freund einladen (+3)"}.get(user_lang, "🤝 Refer a Friend (+3 msgs)")
+            _ref_btn = {"ru": "🤝 Пригласить друга (+10 сообщений)", "de": "🤝 Freund einladen (+10)"}.get(user_lang, "🤝 Refer a Friend (+10 msgs)")
             kb = InlineKeyboardMarkup(inline_keyboard=[
                 [InlineKeyboardButton(text=_sub_btn, callback_data="subscribe_menu")],
                 [InlineKeyboardButton(text=_ref_btn, callback_data="menu_referrals")]

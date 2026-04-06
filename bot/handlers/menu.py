@@ -136,9 +136,9 @@ async def menu_referrals(message: Message):
             f"📊 *Ваша статистика:*\n"
             f"• Приглашено: *{stats['total']}*\n"
             f"• Оплатили подписку: *{stats['paid']}*\n"
-            f"• Бонусов заработано: *{stats['bonuses_granted'] * 3}* сообщений\n"
+            f"• Бонусов заработано: *{stats['bonuses_granted'] * 10}* сообщений\n"
             f"• Бонусов осталось: *{bonus}*\n\n"
-            f"💡 За каждого оплатившего друга вы получаете *+3 сообщения*.\n\n"
+            f"💡 За каждого оплатившего друга вы получаете *+10 сообщений*.\n\n"
             f"🔗 Ваша ссылка:\n`{ref_link}`"
         )
     elif user_lang == "de":
@@ -147,9 +147,9 @@ async def menu_referrals(message: Message):
             f"📊 *Ihre Statistik:*\n"
             f"• Eingeladen: *{stats['total']}*\n"
             f"• Haben abonniert: *{stats['paid']}*\n"
-            f"• Verdiente Boni: *{stats['bonuses_granted'] * 3}* Nachrichten\n"
+            f"• Verdiente Boni: *{stats['bonuses_granted'] * 10}* Nachrichten\n"
             f"• Verbleibende Boni: *{bonus}*\n\n"
-            f"💡 Für jeden zahlenden Freund erhalten Sie *+3 Nachrichten*.\n\n"
+            f"💡 Für jeden zahlenden Freund erhalten Sie *+10 Nachrichten*.\n\n"
             f"🔗 Ihr Link:\n`{ref_link}`"
         )
     else:
@@ -158,9 +158,9 @@ async def menu_referrals(message: Message):
             f"📊 *Your stats:*\n"
             f"• Invited: *{stats['total']}*\n"
             f"• Subscribed: *{stats['paid']}*\n"
-            f"• Bonuses earned: *{stats['bonuses_granted'] * 3}* messages\n"
+            f"• Bonuses earned: *{stats['bonuses_granted'] * 10}* messages\n"
             f"• Bonuses remaining: *{bonus}*\n\n"
-            f"💡 For each friend who subscribes you get *+3 messages*.\n\n"
+            f"💡 For each friend who subscribes you get *+10 messages*.\n\n"
             f"🔗 Your link:\n`{ref_link}`"
         )
 

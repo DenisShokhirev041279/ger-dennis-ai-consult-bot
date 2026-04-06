@@ -46,11 +46,12 @@ async def main():
     dp.include_router(admin.router)     # Admin handlers
     dp.include_router(selftest.router)  # Admin selftest
     
-    from bot.handlers import reference_photo, newsession, subscribe, cv_tools
+    from bot.handlers import reference_photo, newsession, subscribe, cv_tools, imagine
     dp.include_router(reference_photo.router)
     dp.include_router(newsession.router)
     dp.include_router(subscribe.router)
     dp.include_router(cv_tools.router)
+    dp.include_router(imagine.router)
     
     dp.include_router(consult.router)   # Must be last (catch-all)
 

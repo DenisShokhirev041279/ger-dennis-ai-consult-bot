@@ -41,7 +41,7 @@ async def grant_referral_bonus_on_payment(referred_id: int, bot=None):
 
     # Grant bonus credit to referrer
     from utils.db_helpers import update_bonus_credits
-    await update_bonus_credits(referrer_id, 3)  # 3 bonus messages for successful referral
+    await update_bonus_credits(referrer_id, 10)  # 10 bonus messages for successful referral
     logger.info(f"Referral bonus granted to {referrer_id} after {referred_id} paid.")
 
     # Notify referrer if bot instance provided
@@ -49,7 +49,7 @@ async def grant_referral_bonus_on_payment(referred_id: int, bot=None):
         try:
             await bot.send_message(
                 referrer_id,
-                "🎉 Your referral just subscribed! You got +3 bonus messages."
+                "🎉 Your referral just subscribed! You got +10 bonus messages."
             )
         except Exception:
             pass
