@@ -110,7 +110,20 @@ async def consult_handler(message: Message, state: FSMContext):
         await processing_msg.edit_text(response)
     else:
         await processing_msg.delete()
-        chunks = [response[i:i+MAX_LEN] for i in range(0, len(response), MAX_LEN)]
+        chunks = []
+        text = response
+        while text:
+            if len(text) <= MAX_LEN:
+                chunks.append(text)
+                break
+            # Find last newline or space before limit
+            cut = text.rfind("\n", 0, MAX_LEN)
+            if cut < MAX_LEN // 2:
+                cut = text.rfind(" ", 0, MAX_LEN)
+            if cut < MAX_LEN // 2:
+                cut = MAX_LEN
+            chunks.append(text[:cut])
+            text = text[cut:].lstrip()
         for idx, chunk in enumerate(chunks):
-            suffix = f"\n\n_{idx+1}/{len(chunks)}_" if len(chunks) > 1 else ""
+            suffix = f"\n\n{idx+1}/{len(chunks)}" if len(chunks) > 1 else ""
             await message.answer(chunk + suffix, parse_mode=None)

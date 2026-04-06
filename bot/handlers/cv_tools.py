@@ -149,13 +149,18 @@ async def process_product_photo(message: Message, state: FSMContext, bot: Bot):
     try:
         with open(file_path, "rb") as f:
             image_data = f.read()
-            
+
         no_bg_data = await remove_background(image_data)
         if no_bg_data:
             file = BufferedInputFile(no_bg_data, filename="product.png")
             await message.bot.send_document(message.chat.id, document=file, caption="Background removed! ✅")
         else:
             await message.answer("❌ Background removal failed.")
+    except Exception as e:
+        logger.exception("Remove.bg processing failed")
+        lang = await get_user_lang(message.from_user.id)
+        err = {"ru": "❌ Не удалось обработать фото. Попробуйте другое.", "de": "❌ Foto konnte nicht verarbeitet werden."}.get(lang, "❌ Failed to process photo. Try another one.")
+        await message.answer(err)
     finally:
         if os.path.exists(file_path):
             os.remove(file_path)
