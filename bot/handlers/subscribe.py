@@ -19,10 +19,12 @@ async def show_subscribe_menu(callback: CallbackQuery):
     # Check current sub
     sub_data = await check_subscription(user_id)
     
-    msg = "⭐️ **Subscription Plans**\n\n"
+    _header = {"ru": "⭐ *Тарифные планы*", "de": "⭐ *Abonnement-Pläne*"}.get(lang, "⭐ *Subscription Plans*")
+    msg = f"{_header}\n\n"
     if sub_data["has_subscription"]:
         plan_title = PLANS[sub_data["plan"]][f"title_{lang}"] if f"title_{lang}" in PLANS[sub_data["plan"]] else PLANS[sub_data["plan"]]["title_en"]
-        msg += f"Your current plan: **{plan_title}**\n\n"
+        _current = {"ru": "Ваш текущий план", "de": "Ihr aktueller Plan"}.get(lang, "Your current plan")
+        msg += f"{_current}: *{plan_title}*\n\n"
     
     # Simple inline keyboard for plans
     kb = InlineKeyboardMarkup(inline_keyboard=[
@@ -49,13 +51,14 @@ async def buy_plan_start(callback: CallbackQuery, state: FSMContext):
 
     # For simplicity, we just use Stars here natively, or we can offer External
     kb = InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text=f"Pay with Telegram Stars", callback_data=f"stars_plan_{plan_key}")],
+        [InlineKeyboardButton(text={"ru": "⭐ Оплатить Stars", "de": "⭐ Mit Stars bezahlen"}.get(lang, "⭐ Pay with Stars"), callback_data=f"stars_plan_{plan_key}")],
         [InlineKeyboardButton(text=get_text(lang, "pay_fiat"), callback_data="pay_fiat")],
         [InlineKeyboardButton(text=get_text(lang, "pay_crypto"), callback_data="pay_crypto")]
     ])
     
     await state.update_data(selected_package=plan_key, is_subscription=True)
-    await callback.message.answer(f"Selected: **{title}**\nChoose payment method:", reply_markup=kb, parse_mode="Markdown")
+    _choose = {"ru": f"Выбран: *{title}*\nСпособ оплаты:", "de": f"Gewählt: *{title}*\nZahlungsmethode:"}.get(lang, f"Selected: *{title}*\nPayment method:")
+    await callback.message.answer(_choose, reply_markup=kb, parse_mode="Markdown")
     await callback.answer()
 
 @router.callback_query(F.data.startswith("stars_plan_"))
@@ -93,8 +96,11 @@ async def stars_sub_success(message: Message, state: FSMContext, bot: Bot):
         # Note: In a real production app, we would notify admins and update the active sessions 
         # (remove duration limits from active sessions).
         lang = await get_user_lang(user_id)
-        msg_success = "✅ Subscription activated successfully! Thank you!" if lang != "ru" else "✅ Подписка успешно активирована! Спасибо!"
+        msg_success = {"ru": "✅ Подписка успешно активирована! Спасибо!", "de": "✅ Abonnement erfolgreich aktiviert! Danke!"}.get(lang, "✅ Subscription activated! Thank you!")
         await message.answer(msg_success)
+
+        from bot.handlers.menu import show_main_menu
+        await show_main_menu(message, user_id)
         
         from utils.config import ADMIN_IDS
         for admin_id in ADMIN_IDS:

@@ -64,8 +64,8 @@ async def consult_handler(message: Message, state: FSMContext):
 
         if msg_today >= daily_allowed:
             _trial_texts = {
-                "ru": f"🔒 Дневной лимит исчерпан ({FREE_DAILY_MESSAGES} сообщений/день на Free).\n\nОформите подписку или пригласите друга (+3 сообщения):",
-                "de": f"🔒 Tageslimit erreicht ({FREE_DAILY_MESSAGES} Nachrichten/Tag kostenlos).\n\nAbonnieren Sie oder laden Sie einen Freund ein (+3 Nachrichten):",
+                "ru": f"🔒 Дневной лимит исчерпан ({FREE_DAILY_MESSAGES} сообщений/день на Free).\n\nОформите подписку или пригласите друга (+10 сообщений):",
+                "de": f"🔒 Tageslimit erreicht ({FREE_DAILY_MESSAGES} Nachrichten/Tag kostenlos).\n\nAbonnieren Sie oder laden Sie einen Freund ein (+10 Nachrichten):",
             }
             _sub_btn = {"ru": "⭐ Оформить подписку", "de": "⭐ Abonnieren"}.get(user_lang, "⭐ Subscribe")
             _ref_btn = {"ru": "🤝 Пригласить друга (+10 сообщений)", "de": "🤝 Freund einladen (+10)"}.get(user_lang, "🤝 Refer a Friend (+10 msgs)")

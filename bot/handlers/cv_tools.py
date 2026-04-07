@@ -31,7 +31,7 @@ def get_cancel_kb():
 async def cancel_cv_action(message: Message, state: FSMContext):
     await state.clear()
     from bot.handlers.menu import show_main_menu
-    await message.answer("🛑 Action cancelled.", reply_markup=ReplyKeyboardRemove())
+    await message.answer("🛑", reply_markup=ReplyKeyboardRemove())
     await show_main_menu(message, message.from_user.id)
 
 # Menus Route - Wait for photo
@@ -138,7 +138,7 @@ async def process_brand_audit(message: Message, state: FSMContext, bot: Bot):
     
     # Show main menu since task is complete
     from bot.handlers.menu import show_main_menu
-    await message.answer("✨ Process finished.", reply_markup=ReplyKeyboardRemove())
+    await message.answer("✨", reply_markup=ReplyKeyboardRemove())
     await show_main_menu(message, message.from_user.id)
 
 # Product Photo (Remove.bg) Handler
@@ -166,7 +166,7 @@ async def process_product_photo(message: Message, state: FSMContext, bot: Bot):
             os.remove(file_path)
     await state.clear()
     from bot.handlers.menu import show_main_menu
-    await message.answer("✨ Process finished.", reply_markup=ReplyKeyboardRemove())
+    await message.answer("✨", reply_markup=ReplyKeyboardRemove())
     await show_main_menu(message, message.from_user.id)
 
 # Social Kit (Pillow crops) Handler
@@ -219,7 +219,7 @@ async def process_social_kit(message: Message, state: FSMContext, bot: Bot):
             os.remove(file_path)
     await state.clear()
     from bot.handlers.menu import show_main_menu
-    await message.answer("✨ Process finished.", reply_markup=ReplyKeyboardRemove())
+    await message.answer("✨", reply_markup=ReplyKeyboardRemove())
     await show_main_menu(message, message.from_user.id)
 
 # AI Video (MagicHour) Handler
@@ -253,5 +253,5 @@ async def process_ai_video(message: Message, state: FSMContext, bot: Bot):
             os.remove(file_path)
     await state.clear()
     from bot.handlers.menu import show_main_menu
-    await message.answer("✨ Process finished.", reply_markup=ReplyKeyboardRemove())
+    await message.answer("✨", reply_markup=ReplyKeyboardRemove())
     await show_main_menu(message, message.from_user.id)

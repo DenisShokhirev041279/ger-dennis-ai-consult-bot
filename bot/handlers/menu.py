@@ -3,7 +3,6 @@ from aiogram.types import Message, ReplyKeyboardMarkup, KeyboardButton
 from utils.db import get_user_lang
 from utils.i18n import get_text
 from utils.config import GEMINI_API_KEY
-from bot.handlers.bookings import booking_start
 
 router = Router()
 
@@ -13,10 +12,10 @@ async def get_main_keyboard(user_lang):
     ref_btn_text = "🤝 Рефералы" if user_lang == "ru" else "🤝 Referrals"
     concept_text = "🎨 AI Концепт" if user_lang == "ru" else ("🎨 AI Konzept" if user_lang == "de" else "🎨 AI Concept")
 
-    book_text = "📅 Консультация" if user_lang == "ru" else ("📅 Beratung" if user_lang == "de" else "📅 Consultation")
+    status_text = "📊 Мой статус" if user_lang == "ru" else ("📊 Mein Status" if user_lang == "de" else "📊 My Status")
 
     buttons = [
-        [KeyboardButton(text=sub_text), KeyboardButton(text=book_text)],
+        [KeyboardButton(text=sub_text), KeyboardButton(text=status_text)],
     ]
     if GEMINI_API_KEY:
         buttons.append([KeyboardButton(text=concept_text), KeyboardButton(text=tools_text)])
@@ -32,9 +31,10 @@ async def show_main_menu(message: Message, user_id: int):
     await message.answer(get_text(user_lang, "welcome"), reply_markup=kb)
 
 # Handle Menu Clicks
-@router.message(F.text.in_({"📅 Консультация", "📅 Consultation", "📅 Beratung", "Забронировать", "Book Consultation", "Buchen", "Услуги", "Services", "Dienstleistungen"}))
-async def menu_book(message: Message, state):
-    await booking_start(message, state)
+@router.message(F.text.in_({"📊 Мой статус", "📊 My Status", "📊 Mein Status"}))
+async def menu_status(message: Message):
+    from bot.handlers.start import cmd_mystatus
+    await cmd_mystatus(message)
 
 @router.message(F.text.contains("Help") | F.text.contains("Помощь"))
 async def menu_help(message: Message):

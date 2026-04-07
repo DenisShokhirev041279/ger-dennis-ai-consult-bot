@@ -65,7 +65,7 @@ STRINGS = {
         "ref_photo_intro": "Отправьте от 1 до 14 референсных фото. Затем отправьте /done. Отмена: /cancel. Можно добавить текстовое описание.",
         "ref_photo_error_count": "Пожалуйста, отправьте от 1 до 14 фото.",
         "ref_photo_done": "Обработка ваших фото... (Это может занять минуту)",
-        "ref_photo_limit": "Дневной лимит референсных фото исчерпан. Пожалуйста, забронируйте сессию."
+        "ref_photo_limit": "Дневной лимит референсных фото исчерпан. Оформите подписку для безлимита."
     },
     "de": {
         "welcome": "Willkommen! Ich bin Ihr KI-Berater — fragen Sie mich zu KI, Automatisierung oder Geschäftsstrategie:",
