@@ -21,7 +21,9 @@ async def get_main_keyboard(user_lang):
         buttons.append([KeyboardButton(text=concept_text), KeyboardButton(text=tools_text)])
     else:
         buttons.append([KeyboardButton(text=tools_text)])
+    info_text = "ℹ️ Информация" if user_lang == "ru" else ("ℹ️ Information" if user_lang == "de" else "ℹ️ Info")
     buttons.append([KeyboardButton(text=ref_btn_text), KeyboardButton(text="Help / Помощь")])
+    buttons.append([KeyboardButton(text=info_text)])
 
     return ReplyKeyboardMarkup(keyboard=buttons, resize_keyboard=True, one_time_keyboard=False)
 
@@ -58,6 +60,37 @@ async def menu_help(message: Message):
             "💬 Need a live consultation? @ger\\_denis\\_sh"
         )
     await message.answer(text, parse_mode="Markdown")
+
+
+@router.message(F.text.in_({"ℹ️ Информация", "ℹ️ Info", "ℹ️ Information"}))
+async def menu_info(message: Message):
+    lang = await get_user_lang(message.from_user.id)
+    if lang == "ru":
+        text = (
+            "ℹ️ *Информация*\n\n"
+            "📄 [Политика конфиденциальности](https://telegra.ph/Politika-konfidencialnosti-04-01-26)\n"
+            "📄 [Пользовательское соглашение](https://telegra.ph/Polzovatelskoe-soglashenie-04-01-19)\n\n"
+            "📧 Поддержка: u9475307309@gmail.com\n"
+            "💬 Telegram: @ger\\_denis\\_sh"
+        )
+    elif lang == "de":
+        text = (
+            "ℹ️ *Information*\n\n"
+            "📄 [Datenschutzrichtlinie](https://telegra.ph/Politika-konfidencialnosti-04-01-26)\n"
+            "📄 [Nutzungsvereinbarung](https://telegra.ph/Polzovatelskoe-soglashenie-04-01-19)\n\n"
+            "📧 Support: u9475307309@gmail.com\n"
+            "💬 Telegram: @ger\\_denis\\_sh"
+        )
+    else:
+        text = (
+            "ℹ️ *Information*\n\n"
+            "📄 [Privacy Policy](https://telegra.ph/Politika-konfidencialnosti-04-01-26)\n"
+            "📄 [Terms of Service](https://telegra.ph/Polzovatelskoe-soglashenie-04-01-19)\n\n"
+            "📧 Support: u9475307309@gmail.com\n"
+            "💬 Telegram: @ger\\_denis\\_sh"
+        )
+    await message.answer(text, parse_mode="Markdown", disable_web_page_preview=True)
+
 
 @router.message(F.text.in_({"⭐ Подписка", "⭐ Subscribe / My Plan"}))
 async def menu_subscribe_btn(message: Message, state):
