@@ -17,10 +17,8 @@ async def get_ai_response(prompt: str = None, lang: str = "en", mode: str = "pai
     # Token limits
     if mode == "paid":
         max_tokens = 2048
-    elif mode == "trial_short":
-        max_tokens = 150 # Shorter response
     else:
-        max_tokens = 600
+        max_tokens = 1200  # Free tier: enough for quality answers
     
     # Normalize language code
     lang = lang.split("-")[0].lower() if lang else "en"

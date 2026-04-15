@@ -225,13 +225,19 @@ async def process_social_kit(message: Message, state: FSMContext, bot: Bot):
 # AI Video (MagicHour) Handler
 @router.message(UserStates.CV_AI_VIDEO, F.photo)
 async def process_ai_video(message: Message, state: FSMContext, bot: Bot):
-    await message.answer("Sending to MagicHour for Animation. This may take a couple of minutes... 🎬")
+    _start_msg = {
+        "ru": "🎬 Отправляю в MagicHour для анимации. Это займёт 2-5 минут, подождите...",
+        "en": "🎬 Sending to MagicHour for animation. This takes 2-5 minutes, please wait...",
+        "de": "🎬 Wird an MagicHour gesendet. Das dauert 2-5 Minuten, bitte warten...",
+    }
+    user_lang_pre = await get_user_lang(message.from_user.id)
+    await message.answer(_start_msg.get(user_lang_pre, _start_msg["en"]))
     file_path = await download_photo(message, bot)
     user_lang = await get_user_lang(message.from_user.id)
     _timeout_text = {
-        "ru": "⏱ Генерация видео заняла слишком долго (лимит 3 мин). Попробуйте позже.",
-        "en": "⏱ Video generation timed out (3 min limit). Please try again later.",
-        "de": "⏱ Videogenerierung hat zu lange gedauert (3 Min. Limit). Bitte versuche es später.",
+        "ru": "⏱ Генерация видео заняла слишком долго (лимит 5 мин). Попробуйте другое фото или позже.",
+        "en": "⏱ Video generation timed out (5 min limit). Try a different photo or try later.",
+        "de": "⏱ Videogenerierung hat zu lange gedauert (5 Min. Limit). Versuchen Sie ein anderes Foto.",
     }
     _fail_text = {
         "ru": "❌ Не удалось сгенерировать видео. Попробуйте другое фото.",

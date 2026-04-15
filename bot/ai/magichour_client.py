@@ -4,7 +4,7 @@ import asyncio
 from magic_hour import AsyncClient
 from utils.logger import logger
 
-GENERATION_TIMEOUT = 180  # 3 minutes max
+GENERATION_TIMEOUT = 300  # 5 minutes max
 
 
 async def generate_animation(image_path: str, end_seconds: int = 5) -> str:
