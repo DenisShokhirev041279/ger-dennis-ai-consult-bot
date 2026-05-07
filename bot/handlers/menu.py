@@ -70,24 +70,24 @@ async def menu_info(message: Message):
             "ℹ️ *Информация*\n\n"
             "📄 [Политика конфиденциальности](https://telegra.ph/Politika-konfidencialnosti-04-01-26)\n"
             "📄 [Пользовательское соглашение](https://telegra.ph/Polzovatelskoe-soglashenie-04-01-19)\n\n"
-            "📧 Поддержка: u9475307309@gmail.com\n"
-            "💬 Telegram: @ger\\_denis\\_sh"
+            "📧 Поддержка и обращения по оплате: u9475307309@gmail.com\n"
+            "💬 Персональная консультация: @ger\\_denis\\_sh"
         )
     elif lang == "de":
         text = (
             "ℹ️ *Information*\n\n"
             "📄 [Datenschutzrichtlinie](https://telegra.ph/Politika-konfidencialnosti-04-01-26)\n"
             "📄 [Nutzungsvereinbarung](https://telegra.ph/Polzovatelskoe-soglashenie-04-01-19)\n\n"
-            "📧 Support: u9475307309@gmail.com\n"
-            "💬 Telegram: @ger\\_denis\\_sh"
+            "📧 Support and payment requests: u9475307309@gmail.com\n"
+            "💬 Personal consultation: @ger\\_denis\\_sh"
         )
     else:
         text = (
             "ℹ️ *Information*\n\n"
             "📄 [Privacy Policy](https://telegra.ph/Politika-konfidencialnosti-04-01-26)\n"
             "📄 [Terms of Service](https://telegra.ph/Polzovatelskoe-soglashenie-04-01-19)\n\n"
-            "📧 Support: u9475307309@gmail.com\n"
-            "💬 Telegram: @ger\\_denis\\_sh"
+            "📧 Support and payment requests: u9475307309@gmail.com\n"
+            "💬 Personal consultation: @ger\\_denis\\_sh"
         )
     await message.answer(text, parse_mode="Markdown", disable_web_page_preview=True)
 
