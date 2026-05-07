@@ -26,7 +26,10 @@ See [koyeb.md](koyeb.md) for 1-click deployment steps.
 - non-subscribers have an AI watermark appended.
 
 ## 🧩 Reference Photo / CV Tools
-- Support for Image/Video generation and background removal via MagicHour & Gemini Vision.
+- Photo Style Art: creates new premium visuals from reference-photo style, palette, mood and composition. This is not face copying or face swap.
+- Brand Audit Pro: scores visuals 0-100 for clarity, trust, composition, scroll-stopping power and conversion readiness.
+- Safe Motion: subtle MagicHour photo animation with identity-preserving instructions and optional user motion direction.
+- Also supports background removal and Social Media Kit crops.
 - Accessed via the "AI Tools" menu (Requires Pro/Business).
 
 ## ☁️ Deployment & Webhook

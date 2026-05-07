@@ -39,7 +39,11 @@ async def cancel_cv_action(message: Message, state: FSMContext):
 async def start_brand_audit(call: CallbackQuery, state: FSMContext):
     await state.set_state(UserStates.CV_BRAND_AUDIT)
     lang = await get_user_lang(call.from_user.id)
-    msg = "Please send 1 photo for Brand Audit." if lang != "ru" else "Отправьте 1 фото для Brand Audit."
+    msg = (
+        "Please send 1 visual for Brand Audit Pro. I will score clarity, trust, composition, scroll-stopping power and conversion."
+        if lang != "ru"
+        else "Отправьте 1 визуал для Brand Audit Pro. Я оценю ясность, доверие, композицию, стоп-эффект и конверсию."
+    )
     await call.message.answer(msg, reply_markup=get_cancel_kb())
     await call.answer()
 
@@ -63,14 +67,24 @@ async def start_social_kit(call: CallbackQuery, state: FSMContext):
 async def start_ai_video(call: CallbackQuery, state: FSMContext):
     await state.set_state(UserStates.CV_AI_VIDEO)
     lang = await get_user_lang(call.from_user.id)
-    msg = "Please send 1 photo to animate via MagicHour." if lang != "ru" else "Отправьте 1 фото для анимации через MagicHour."
+    msg = (
+        "Send 1 photo for Safe Motion. You can add a caption like: slow camera push, slight smile, wind in hair. This is subtle animation, not face swap."
+        if lang != "ru"
+        else "Отправьте 1 фото для Safe Motion. Можно добавить подпись: медленный зум, лёгкая улыбка, ветер в волосах. Это аккуратная анимация, не face swap."
+    )
     await call.message.answer(msg, reply_markup=get_cancel_kb())
     await call.answer()
 
 # Brand Audit Handler
 @router.message(UserStates.CV_BRAND_AUDIT, F.photo)
 async def process_brand_audit(message: Message, state: FSMContext, bot: Bot):
-    await message.answer("Analyzing your brand visual... ⏳")
+    lang_pre = await get_user_lang(message.from_user.id)
+    start_msg = {
+        "ru": "🔍 Делаю Brand Audit Pro: метрики + экспертная оценка визуала... ⏳",
+        "en": "🔍 Running Brand Audit Pro: metrics + expert visual review... ⏳",
+        "de": "🔍 Brand Audit Pro läuft: Metriken + Expertenreview... ⏳",
+    }
+    await message.answer(start_msg.get(lang_pre, start_msg["en"]))
     file_path = await download_photo(message, bot)
     try:
         sub = await check_subscription(message.from_user.id)
@@ -107,12 +121,12 @@ async def process_brand_audit(message: Message, state: FSMContext, bot: Bot):
         q4 = np.mean(arr_gray[cy:, cx:]) # Bottom-Right
         q_max = max(q1, q2, q3, q4)
         if q_max == q1: comp = "Top-Left (Visual weight)"
-        elif q_max == q2: comp = "Top-Right ((Visual weight)"
+        elif q_max == q2: comp = "Top-Right (Visual weight)"
         elif q_max == q3: comp = "Bottom-Left (Visual weight)"
         else: comp = "Bottom-Right (Visual weight)"
         
         free_analysis = (
-            f"📊 **Base Visual Metrics**\n"
+            f"📊 Base Visual Metrics\n"
             f"• Aspect Ratio: {aspect}\n"
             f"• Brightness (0-255): {brightness}\n"
             f"• Contrast (0-255): {contrast}\n"
@@ -122,11 +136,11 @@ async def process_brand_audit(message: Message, state: FSMContext, bot: Bot):
         img.close()
         
         if has_pro:
-            await message.answer(free_analysis + "🧠 Starting Deep AI Analysis (Pro/Business)...")
+            await message.answer(free_analysis + "🧠 Starting Deep Brand Audit Pro...")
             response_text = await brand_audit(file_path)
             await message.answer(response_text)
         else:
-            await message.answer(free_analysis + "⭐ Upgrade to Pro for deep Gemini AI subjective analysis and improvement recommendations.")
+            await message.answer(free_analysis + "⭐ Upgrade to Pro for a strict 0-100 brand score, top problems and concrete fixes before posting.")
             
     except Exception as e:
         logger.exception("Brand Audit failed.")
@@ -226,9 +240,9 @@ async def process_social_kit(message: Message, state: FSMContext, bot: Bot):
 @router.message(UserStates.CV_AI_VIDEO, F.photo)
 async def process_ai_video(message: Message, state: FSMContext, bot: Bot):
     _start_msg = {
-        "ru": "🎬 Отправляю в MagicHour для анимации. Это займёт 2-5 минут, подождите...",
-        "en": "🎬 Sending to MagicHour for animation. This takes 2-5 minutes, please wait...",
-        "de": "🎬 Wird an MagicHour gesendet. Das dauert 2-5 Minuten, bitte warten...",
+        "ru": "🎬 Делаю Safe Motion. Передаю фото с режимом сохранения лица и аккуратного движения. Это займёт 2-5 минут...",
+        "en": "🎬 Creating Safe Motion. Sending the photo with face-preserving, subtle-motion instructions. This takes 2-5 minutes...",
+        "de": "🎬 Safe Motion wird erstellt. Foto wird mit gesichtsschonender, subtiler Bewegung verarbeitet. Das dauert 2-5 Minuten...",
     }
     user_lang_pre = await get_user_lang(message.from_user.id)
     await message.answer(_start_msg.get(user_lang_pre, _start_msg["en"]))
@@ -245,10 +259,15 @@ async def process_ai_video(message: Message, state: FSMContext, bot: Bot):
         "de": "❌ Videogenerierung fehlgeschlagen. Versuche ein anderes Foto.",
     }
     try:
-        video_path = await generate_animation(file_path)
+        video_path = await generate_animation(file_path, user_prompt=message.caption or "")
         if video_path and os.path.exists(video_path):
             from aiogram.types import FSInputFile
-            await message.answer_video(FSInputFile(video_path), caption="🎬 Your MagicHour Animation")
+            captions = {
+                "ru": "🎬 Safe Motion готов. Если лицо всё равно исказилось, используйте более чёткое фронтальное фото без сильного поворота.",
+                "en": "🎬 Safe Motion is ready. If the face still warped, use a clearer front-facing photo with less head rotation.",
+                "de": "🎬 Safe Motion ist fertig. Falls das Gesicht verzerrt wurde, nutzen Sie ein klareres frontales Foto.",
+            }
+            await message.answer_video(FSInputFile(video_path), caption=captions.get(user_lang, captions["en"]))
             os.remove(video_path)
         else:
             await message.answer(_fail_text.get(user_lang, _fail_text["en"]))

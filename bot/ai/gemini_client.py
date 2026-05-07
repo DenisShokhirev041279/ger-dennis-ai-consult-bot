@@ -17,12 +17,12 @@ else:
 
 async def merge_reference_photos(image_paths: list[str], user_prompt: str = "") -> str:
     """
-    AI Visual Concept Generator:
+    AI Style Art Generator:
     1. Analyzes reference images with Gemini Vision.
     2. Extracts style, mood, color palette, composition elements.
-    3. Generates a creative visual concept via DALL-E 3.
+    3. Generates a creative style-inspired visual via DALL-E 3.
 
-    Note: This creates an artistic interpretation, not identity-preserving merge.
+    Note: This creates a style/mood concept, not an identity-preserving portrait.
     """
     if not _client:
         raise Exception("Gemini API Key missing")
@@ -48,7 +48,8 @@ async def merge_reference_photos(image_paths: list[str], user_prompt: str = "") 
             user_context = "\nNo specific direction given — create the most visually striking concept possible from the reference images."
         merge_prompt = (
             "You are a world-class art director creating a DALL-E 3 prompt from reference images.\n\n"
-            "IMPORTANT: DALL-E 3 cannot reproduce real faces or identities. Focus on STYLE, not people.\n\n"
+            "IMPORTANT PRODUCT RULE: this is NOT an identity-preserving portrait tool. "
+            "Create a premium style-inspired artwork/moodboard, not a fake copy of a real person.\n\n"
             "Analyze the reference images. Extract:\n"
             "- Visual style (photorealistic, cinematic, editorial, artistic, etc.)\n"
             "- Color palette (dominant colors, mood, temperature)\n"
@@ -56,9 +57,10 @@ async def merge_reference_photos(image_paths: list[str], user_prompt: str = "") 
             "- Textures, materials, key visual elements\n"
             "- Overall mood and emotional feel\n\n"
             f"{user_context}\n\n"
-            "Write a DALL-E 3 prompt that synthesizes these elements into one stunning image. "
-            "Be specific: lighting setup, camera angle, style references, color grading. "
-            "Do NOT describe specific people or faces. Describe scenes, objects, compositions. "
+            "Write a premium DALL-E 3 prompt that synthesizes these elements into one stunning image for social media. "
+            "Be specific: subject type, composition, lighting setup, camera angle, art direction, color grading. "
+            "If people appear, describe only generic roles/silhouettes/poses, not identity. "
+            "Avoid generic words like beautiful, cool, amazing. "
             "Output ONLY the prompt. Maximum 800 characters."
         )
 
@@ -108,10 +110,31 @@ async def brand_audit(image_path: str) -> str:
         img = PIL.Image.open(image_path)
 
         prompt = (
-            "You are a top-tier Brand Strategist and Marketing Director. "
-            "Please perform a critical Brand Audit on this image. "
-            "Analyze the visual identity, color palette, typography, composition, and emotional impact. "
-            "Provide actionable suggestions for improvement in 3-4 short, punchy paragraphs."
+            "You are a senior brand strategist, creative director, and conversion-focused social media producer.\n"
+            "Audit this visual for Telegram, Instagram, LinkedIn, YouTube thumbnail, and paid ad usage.\n\n"
+            "Return a practical report in the user's likely language if recognizable; otherwise English.\n"
+            "Use this exact structure:\n\n"
+            "🔍 VISUAL SCORE: <0-100>\n"
+            "One-line verdict: <direct verdict>\n\n"
+            "📊 SCORECARD\n"
+            "• Clarity: <0-10> — <why>\n"
+            "• Trust / premium feel: <0-10> — <why>\n"
+            "• Composition: <0-10> — <why>\n"
+            "• Scroll-stopping power: <0-10> — <why>\n"
+            "• Conversion readiness: <0-10> — <why>\n\n"
+            "🚨 TOP 3 PROBLEMS\n"
+            "1. <specific problem>\n"
+            "2. <specific problem>\n"
+            "3. <specific problem>\n\n"
+            "✅ 3 FIXES BEFORE POSTING\n"
+            "1. <specific edit>\n"
+            "2. <specific edit>\n"
+            "3. <specific edit>\n\n"
+            "📱 BEST USE\n"
+            "• Best platform/format: <platform + format>\n"
+            "• Caption angle: <short angle>\n"
+            "• CTA: <short CTA>\n\n"
+            "Be strict. Do not flatter. Give concrete fixes a non-designer can execute."
         )
 
         response = await _client.aio.models.generate_content(

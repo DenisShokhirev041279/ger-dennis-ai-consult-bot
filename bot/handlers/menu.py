@@ -10,7 +10,7 @@ async def get_main_keyboard(user_lang):
     sub_text = "⭐ Подписка" if user_lang == "ru" else "⭐ Subscribe / My Plan"
     tools_text = "🎨 AI Инструменты" if user_lang == "ru" else ("🎨 KI Werkzeuge" if user_lang == "de" else "🎨 AI Tools")
     ref_btn_text = "🤝 Рефералы" if user_lang == "ru" else "🤝 Referrals"
-    concept_text = "🎨 AI Концепт" if user_lang == "ru" else ("🎨 AI Konzept" if user_lang == "de" else "🎨 AI Concept")
+    concept_text = "🎨 Арт по стилю фото" if user_lang == "ru" else ("🎨 Foto-Stil-Art" if user_lang == "de" else "🎨 Photo Style Art")
 
     status_text = "📊 Мой статус" if user_lang == "ru" else ("📊 Mein Status" if user_lang == "de" else "📊 My Status")
 
@@ -169,23 +169,23 @@ async def menu_ai_tools(message: Message):
         kb = InlineKeyboardMarkup(inline_keyboard=[
             [InlineKeyboardButton(text="✂️ Удалить фон (Remove.bg)", callback_data="cv_product_photo")],
             [InlineKeyboardButton(text="📐 Social Media Kit (1:1, 4:5, 9:16)", callback_data="cv_social_kit")],
-            [InlineKeyboardButton(text="🔍 Brand Audit (анализ визуала)", callback_data="cv_brand_audit")],
-            [InlineKeyboardButton(text="🎬 AI Анимация (MagicHour)", callback_data="cv_ai_video")],
+            [InlineKeyboardButton(text="🔍 Brand Audit Pro (оценка 0-100)", callback_data="cv_brand_audit")],
+            [InlineKeyboardButton(text="🎬 Safe Motion (анимация фото)", callback_data="cv_ai_video")],
         ])
     elif lang == "de":
         text = "🎨 *KI Werkzeuge*\n\nWählen Sie ein Werkzeug:"
         kb = InlineKeyboardMarkup(inline_keyboard=[
             [InlineKeyboardButton(text="✂️ Hintergrund entfernen (Remove.bg)", callback_data="cv_product_photo")],
             [InlineKeyboardButton(text="📐 Social Media Kit (1:1, 4:5, 9:16)", callback_data="cv_social_kit")],
-            [InlineKeyboardButton(text="🔍 Brand Audit (visuelle Analyse)", callback_data="cv_brand_audit")],
-            [InlineKeyboardButton(text="🎬 KI Animation (MagicHour)", callback_data="cv_ai_video")],
+            [InlineKeyboardButton(text="🔍 Brand Audit Pro (Score 0-100)", callback_data="cv_brand_audit")],
+            [InlineKeyboardButton(text="🎬 Safe Motion (Fotoanimation)", callback_data="cv_ai_video")],
         ])
     else:
         text = "🎨 *AI Tools*\n\nChoose a tool:"
         kb = InlineKeyboardMarkup(inline_keyboard=[
             [InlineKeyboardButton(text="✂️ Remove Background (Remove.bg)", callback_data="cv_product_photo")],
             [InlineKeyboardButton(text="📐 Social Media Kit (1:1, 4:5, 9:16)", callback_data="cv_social_kit")],
-            [InlineKeyboardButton(text="🔍 Brand Audit (visual analysis)", callback_data="cv_brand_audit")],
-            [InlineKeyboardButton(text="🎬 AI Animation (MagicHour)", callback_data="cv_ai_video")],
+            [InlineKeyboardButton(text="🔍 Brand Audit Pro (score 0-100)", callback_data="cv_brand_audit")],
+            [InlineKeyboardButton(text="🎬 Safe Motion (photo animation)", callback_data="cv_ai_video")],
         ])
     await message.answer(text, reply_markup=kb, parse_mode="Markdown")

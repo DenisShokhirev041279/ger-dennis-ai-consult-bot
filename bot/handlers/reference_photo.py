@@ -35,42 +35,42 @@ def get_photo_keyboard(lang: str) -> ReplyKeyboardMarkup:
 def get_intro_text(lang: str) -> str:
     texts = {
         "ru": (
-            "🎨 *AI Визуальный Концепт*\n\n"
+            "🎨 *Арт по стилю фото*\n\n"
             "Как это работает:\n"
             "1️⃣ Отправьте 1-14 референсных фото\n"
-            "2️⃣ Напишите текстом что хотите получить\n"
-            "3️⃣ AI проанализирует стиль и создаст новое изображение через DALL-E 3 HD\n\n"
+            "2️⃣ Напишите, какой результат нужен: постер, обложка, аватар, баннер, moodboard\n"
+            "3️⃣ AI выделит стиль, цвет, свет, композицию и создаст новое премиальное изображение через DALL-E 3 HD\n\n"
             "💡 *Подсказки для промпта:*\n"
             "• Стиль: editorial, cinematic, минимализм, поп-арт\n"
             "• Атмосфера: тёмная, тёплая, неоновая, пастельная\n"
             "• Формат: постер, обложка, баннер, аватар\n\n"
-            "⚠️ AI НЕ копирует лица — он создаёт новый арт по мотивам ваших фото.\n\n"
+            "⚠️ Важно: это не копирование лица и не face swap. Инструмент делает новый арт по стилю ваших фото, чтобы результат был честным и стабильным.\n\n"
             "Когда загрузите все фото — нажмите *✅ Готово*"
         ),
         "en": (
-            "🎨 *AI Visual Concept*\n\n"
+            "🎨 *Photo Style Art*\n\n"
             "How it works:\n"
             "1️⃣ Send 1-14 reference photos\n"
-            "2️⃣ Write what you want to create\n"
-            "3️⃣ AI analyzes style and generates a new image via DALL-E 3 HD\n\n"
+            "2️⃣ Describe the result: poster, cover, avatar, banner, moodboard\n"
+            "3️⃣ AI extracts style, colors, light, composition and generates a new premium image via DALL-E 3 HD\n\n"
             "💡 *Prompt tips:*\n"
             "• Style: editorial, cinematic, minimalist, pop-art\n"
             "• Mood: dark, warm, neon, pastel\n"
             "• Format: poster, cover, banner, avatar\n\n"
-            "⚠️ AI does NOT copy faces — it creates new art inspired by your photos.\n\n"
+            "⚠️ Important: this is not face copying or face swap. It creates new style-inspired art so the result stays honest and stable.\n\n"
             "When done uploading — tap *✅ Done*"
         ),
         "de": (
-            "🎨 *KI-Visualkonzept*\n\n"
+            "🎨 *Foto-Stil-Art*\n\n"
             "So funktioniert es:\n"
             "1️⃣ Senden Sie 1-14 Referenzfotos\n"
-            "2️⃣ Beschreiben Sie, was Sie erstellen möchten\n"
-            "3️⃣ KI analysiert den Stil und generiert ein neues Bild via DALL-E 3 HD\n\n"
+            "2️⃣ Beschreiben Sie das Ergebnis: Poster, Cover, Avatar, Banner, Moodboard\n"
+            "3️⃣ KI extrahiert Stil, Farben, Licht, Komposition und generiert ein neues Premiumbild via DALL-E 3 HD\n\n"
             "💡 *Prompt-Tipps:*\n"
             "• Stil: Editorial, Cinematic, Minimalistisch, Pop-Art\n"
             "• Stimmung: dunkel, warm, Neon, Pastell\n"
             "• Format: Poster, Cover, Banner, Avatar\n\n"
-            "⚠️ KI kopiert KEINE Gesichter — sie erstellt neue Kunst inspiriert von Ihren Fotos.\n\n"
+            "⚠️ Wichtig: Das ist kein Gesichtskopieren und kein Face Swap. Das Tool erstellt neue stilinspirierte Kunst, damit das Ergebnis ehrlich und stabil bleibt.\n\n"
             "Wenn Sie fertig sind — tippen Sie auf *✅ Fertig*"
         ),
     }
@@ -86,7 +86,11 @@ def get_status_text(lang: str, count: int) -> str:
     return texts.get(lang, texts["en"])
 
 
-@router.message(F.text.in_({"🎨 AI Концепт", "🎨 AI Concept", "🎨 AI Konzept", "🧩 Референс-Фото", "🧩 Reference Photo", "🧩 Referenzfoto"}))
+@router.message(F.text.in_({
+    "🎨 Арт по стилю фото", "🎨 Photo Style Art", "🎨 Foto-Stil-Art",
+    "🎨 AI Концепт", "🎨 AI Concept", "🎨 AI Konzept",
+    "🧩 Референс-Фото", "🧩 Reference Photo", "🧩 Referenzfoto"
+}))
 async def ref_photo_start(message: Message, state: FSMContext):
     user_id = message.from_user.id
     lang = await get_user_lang(user_id)
@@ -218,9 +222,9 @@ async def ref_photo_done(message: Message, state: FSMContext, bot: Bot):
         await status_msg.delete()
 
         captions = {
-            "ru": "✅ Готово! Вот ваш AI визуальный концепт по референсам.",
-            "en": "✅ Done! Here is your AI visual concept based on your references.",
-            "de": "✅ Fertig! Hier ist Ihr KI-Visualkonzept basierend auf Ihren Referenzen.",
+            "ru": "✅ Готово! Это арт по стилю ваших фото: цвет, настроение, свет и композиция. Это не копия лица.",
+            "en": "✅ Done! This is style-inspired art based on your photos: color, mood, light and composition. It is not a face copy.",
+            "de": "✅ Fertig! Das ist stilinspirierte Kunst nach Ihren Fotos: Farbe, Stimmung, Licht und Komposition. Es ist keine Gesichtskopie.",
         }
         await message.answer_photo(
             result_image_url,
