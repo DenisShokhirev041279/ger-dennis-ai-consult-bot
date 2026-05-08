@@ -59,7 +59,7 @@ async def check_subscription(user_id: int) -> dict:
 
     return result
 
-async def activate_subscription(user_id: int, plan_key: str):
+async def activate_subscription(user_id: int, plan_key: str, bot=None):
     """Activate or renew a subscription."""
     plan = PLANS.get(plan_key)
     if not plan:
@@ -82,4 +82,4 @@ async def activate_subscription(user_id: int, plan_key: str):
 
     # Grant referral bonus to whoever invited this user (if not already granted)
     from utils.db_referrals import grant_referral_bonus_on_payment
-    await grant_referral_bonus_on_payment(user_id)
+    await grant_referral_bonus_on_payment(user_id, bot=bot)

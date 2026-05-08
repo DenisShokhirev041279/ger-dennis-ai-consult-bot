@@ -22,11 +22,15 @@ async def cmd_start(message: Message, command: CommandObject, state: FSMContext)
                 referrer_id = int(command.args.split("_")[1])
             except (ValueError, IndexError):
                 pass
-        elif command.args.startswith("GIFT-"):
-            promo_code = command.args
+        else:
+            promo_code = command.args.strip().upper()
+
+    user_id = message.from_user.id
+    current_lang = await get_user_lang(user_id)
+    await set_user_lang(user_id, current_lang, message.from_user.username)
 
     if referrer_id:
-        await add_referral(referrer_id, message.from_user.id)
+        await add_referral(referrer_id, user_id)
         
     if promo_code:
         from utils.db_promo import use_promo_code
@@ -39,7 +43,6 @@ async def cmd_start(message: Message, command: CommandObject, state: FSMContext)
     # Reset state
     await state.clear()
     
-    user_id = message.from_user.id
     # Check if user exists/has lang
     # Actually, let's always offer lang selection on /start for simplicity?
     # Or if user is known, show menu? 
@@ -78,6 +81,59 @@ async def cmd_login(message: Message, state: FSMContext):
     await message.answer(
         "You are not logged in yet. Please use /start to select language and begin.",
     )
+
+
+@router.message(Command("promo"))
+async def cmd_user_promo(message: Message):
+    parts = (message.text or "").split(maxsplit=1)
+    from utils.config import ADMIN_IDS
+    if message.from_user.id in ADMIN_IDS:
+        args = parts[1] if len(parts) > 1 else ""
+        first = args.split(maxsplit=1)[0].lower() if args else ""
+        if not args or first in {"msg", "premium"}:
+            from utils.db_promo import create_promo_code, get_promo_stats
+            if not args:
+                stats = await get_promo_stats()
+                await message.answer(
+                    f"🎁 Управление промокодами\n\n"
+                    f"Всего создано: {stats['total']}\n"
+                    f"Использовано раз: {stats['used']}\n\n"
+                    f"Создать: /promo msg 50 100 30 или /promo premium 7 100 30"
+                )
+                return
+            raw = args.split()
+            reward_type = "premium_days" if raw[0].lower() == "premium" else "trial_messages"
+            reward_amount = int(raw[1]) if len(raw) >= 2 and raw[1].isdigit() else (7 if reward_type == "premium_days" else 50)
+            max_uses = int(raw[2]) if len(raw) >= 3 and raw[2].isdigit() else 1
+            days_valid = int(raw[3]) if len(raw) >= 4 and raw[3].isdigit() else 30
+            code = await create_promo_code(message.from_user.id, reward_type, reward_amount, max_uses, days_valid)
+            bot_info = await message.bot.get_me()
+            await message.answer(
+                f"✅ Промокод создан!\n\n"
+                f"Код: {code}\n"
+                f"Ссылка: https://t.me/{bot_info.username}?start={code}\n\n"
+                f"Тип: {reward_type} ({reward_amount})\n"
+                f"Активаций: {max_uses}\n"
+                f"Срок годности: {days_valid} дней"
+            )
+            return
+
+    if len(parts) < 2:
+        await message.answer(
+            "🎁 Промокод\n\n"
+            "Формат: /promo CODE\n"
+            "Примеры: /promo BRAND, /promo AUTHOR, /promo PRO7"
+        )
+        return
+
+    code = parts[1].strip().upper()
+    await set_user_lang(message.from_user.id, await get_user_lang(message.from_user.id), message.from_user.username)
+    from utils.db_promo import use_promo_code
+    result = await use_promo_code(message.from_user.id, code)
+    if result["success"]:
+        await message.answer(f"🎉 Промокод активирован!\n\n{result['message']}")
+    else:
+        await message.answer(f"❌ Ошибка активации промокода: {result['message']}")
 
 
 @router.message(Command("mystatus"))

@@ -69,11 +69,16 @@ async def init_db():
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 referrer_id INTEGER NOT NULL,
                 referred_id INTEGER NOT NULL UNIQUE,
+                activation_bonus_granted BOOLEAN DEFAULT 0,
                 bonus_granted BOOLEAN DEFAULT 0,
                 referred_subscribed BOOLEAN DEFAULT 0,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         """)
+        async with db.execute("PRAGMA table_info(referrals)") as cursor:
+            referral_columns = {row[1] for row in await cursor.fetchall()}
+        if "activation_bonus_granted" not in referral_columns:
+            await db.execute("ALTER TABLE referrals ADD COLUMN activation_bonus_granted BOOLEAN DEFAULT 0")
         
         await db.execute("""
             CREATE TABLE IF NOT EXISTS analytics_events (

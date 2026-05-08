@@ -8,6 +8,7 @@ from bot.ai.gemini_client import brand_audit
 from bot.ai.removebg_client import remove_background
 from bot.ai.magichour_client import generate_animation
 from utils.db import get_user_lang
+from utils.growth import send_growth_loop
 from utils.logger import logger
 from utils.subscription import check_subscription
 from PIL import Image
@@ -139,6 +140,7 @@ async def process_brand_audit(message: Message, state: FSMContext, bot: Bot):
             await message.answer(free_analysis + "🧠 Starting Deep Brand Audit Pro...")
             response_text = await brand_audit(file_path)
             await message.answer(response_text)
+            await send_growth_loop(message, feature="brand_audit")
         else:
             await message.answer(free_analysis + "⭐ Upgrade to Pro for a strict 0-100 brand score, top problems and concrete fixes before posting.")
             
@@ -168,6 +170,7 @@ async def process_product_photo(message: Message, state: FSMContext, bot: Bot):
         if no_bg_data:
             file = BufferedInputFile(no_bg_data, filename="product.png")
             await message.bot.send_document(message.chat.id, document=file, caption="Background removed! ✅")
+            await send_growth_loop(message, feature="visual_tools")
         else:
             await message.answer("❌ Background removal failed.")
     except Exception as e:
@@ -224,6 +227,7 @@ async def process_social_kit(message: Message, state: FSMContext, bot: Bot):
         medias.append(InputMediaPhoto(media=BufferedInputFile(pil_to_bytes(img_9_16), filename="9_16.jpg"), caption="9:16 (Stories/Reels)"))
         
         await message.bot.send_media_group(message.chat.id, media=medias)
+        await send_growth_loop(message, feature="visual_tools")
         img.close()
     except Exception as e:
         logger.exception("Social Kit failed")
@@ -268,6 +272,7 @@ async def process_ai_video(message: Message, state: FSMContext, bot: Bot):
                 "de": "🎬 Safe Motion ist fertig. Falls das Gesicht verzerrt wurde, nutzen Sie ein klareres frontales Foto.",
             }
             await message.answer_video(FSInputFile(video_path), caption=captions.get(user_lang, captions["en"]))
+            await send_growth_loop(message, feature="safe_motion")
             os.remove(video_path)
         else:
             await message.answer(_fail_text.get(user_lang, _fail_text["en"]))

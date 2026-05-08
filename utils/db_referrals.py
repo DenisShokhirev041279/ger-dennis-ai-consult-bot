@@ -1,20 +1,35 @@
 import aiosqlite
 from utils.db import DB_PATH
 from utils.logger import logger
+from utils.config import REFERRAL_ACTIVATION_BONUS_MESSAGES, REFERRAL_PAYMENT_BONUS_MESSAGES
 
 async def add_referral(referrer_id: int, referred_id: int):
-    """Register a new referral. Bonus is NOT granted here — only after referred user pays."""
+    """Register a new referral and grant a small activation bonus once."""
     if referrer_id == referred_id:
         return
 
     async with aiosqlite.connect(DB_PATH) as db:
         try:
-            await db.execute("""
-                INSERT INTO referrals (referrer_id, referred_id)
-                VALUES (?, ?)
+            cursor = await db.execute("""
+                INSERT OR IGNORE INTO referrals (referrer_id, referred_id, activation_bonus_granted)
+                VALUES (?, ?, 0)
             """, (referrer_id, referred_id))
+            inserted = cursor.rowcount > 0
+            if inserted and REFERRAL_ACTIVATION_BONUS_MESSAGES > 0:
+                await db.execute("""
+                    UPDATE users SET bonus_credits = COALESCE(bonus_credits, 0) + ?
+                    WHERE user_id = ?
+                """, (REFERRAL_ACTIVATION_BONUS_MESSAGES, referrer_id))
+                await db.execute("""
+                    UPDATE referrals SET activation_bonus_granted = 1
+                    WHERE referred_id = ?
+                """, (referred_id,))
             await db.commit()
-            logger.info(f"Referral registered: {referrer_id} -> {referred_id}. Bonus pending payment.")
+            if inserted:
+                logger.info(
+                    f"Referral registered: {referrer_id} -> {referred_id}. "
+                    f"Activation bonus +{REFERRAL_ACTIVATION_BONUS_MESSAGES}; payment bonus pending."
+                )
         except aiosqlite.IntegrityError:
             pass
 
@@ -41,7 +56,7 @@ async def grant_referral_bonus_on_payment(referred_id: int, bot=None):
 
     # Grant bonus credit to referrer
     from utils.db_helpers import update_bonus_credits
-    await update_bonus_credits(referrer_id, 10)  # 10 bonus messages for successful referral
+    await update_bonus_credits(referrer_id, REFERRAL_PAYMENT_BONUS_MESSAGES)
     logger.info(f"Referral bonus granted to {referrer_id} after {referred_id} paid.")
 
     # Notify referrer if bot instance provided
@@ -49,7 +64,7 @@ async def grant_referral_bonus_on_payment(referred_id: int, bot=None):
         try:
             await bot.send_message(
                 referrer_id,
-                "🎉 Your referral just subscribed! You got +10 bonus messages."
+                f"🎉 Your referral just subscribed! You got +{REFERRAL_PAYMENT_BONUS_MESSAGES} bonus messages."
             )
         except Exception:
             pass
@@ -58,14 +73,20 @@ async def get_referral_stats(referrer_id: int) -> dict:
     """Get referral stats for a user: total invited, how many paid, bonus earned."""
     async with aiosqlite.connect(DB_PATH) as db:
         async with db.execute("""
-            SELECT COUNT(*), SUM(referred_subscribed), SUM(bonus_granted)
+            SELECT COUNT(*), SUM(referred_subscribed), SUM(bonus_granted), SUM(activation_bonus_granted)
             FROM referrals WHERE referrer_id = ?
         """, (referrer_id,)) as cursor:
             row = await cursor.fetchone()
     total = row[0] or 0
     paid = row[1] or 0
     bonuses_granted = row[2] or 0
-    return {"total": total, "paid": paid, "bonuses_granted": bonuses_granted}
+    activation_bonuses_granted = row[3] or 0
+    return {
+        "total": total,
+        "paid": paid,
+        "bonuses_granted": bonuses_granted,
+        "activation_bonuses_granted": activation_bonuses_granted,
+    }
 
 async def get_referrer(referred_id: int):
     """Get the ID of the person who referred this user."""

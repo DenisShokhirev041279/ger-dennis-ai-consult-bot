@@ -12,6 +12,7 @@ from utils.subscription import check_subscription
 from utils.security import is_prompt_injection, sanitize_user_input
 from utils.db_helpers_memory import save_message, get_conversation_history, get_current_session_id
 from utils.analytics import track
+from utils.growth import send_growth_loop
 from bot.ai.openai_client import get_ai_response
 
 router = Router()
@@ -127,3 +128,5 @@ async def consult_handler(message: Message, state: FSMContext):
         for idx, chunk in enumerate(chunks):
             suffix = f"\n\n{idx+1}/{len(chunks)}" if len(chunks) > 1 else ""
             await message.answer(chunk + suffix, parse_mode=None)
+
+    await send_growth_loop(message, feature="consult")

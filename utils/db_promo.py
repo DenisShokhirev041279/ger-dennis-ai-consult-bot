@@ -4,6 +4,14 @@ from utils.db import DB_PATH
 import secrets
 import string
 
+BUILTIN_PROMO_CODES = {
+    "CHANNEL": {"reward_type": "trial_messages", "reward_amount": 15, "message": "Вам начислено 15 бонусных запросов для Telegram-канала!"},
+    "AUTHOR": {"reward_type": "trial_messages", "reward_amount": 15, "message": "Вам начислено 15 бонусных запросов для автора/эксперта!"},
+    "BRAND": {"reward_type": "trial_messages", "reward_amount": 15, "message": "Вам начислено 15 бонусных запросов для Brand Audit и визуальных задач!"},
+    "REELS": {"reward_type": "trial_messages", "reward_amount": 15, "message": "Вам начислено 15 бонусных запросов для Reels/Shorts идей!"},
+    "PRO7": {"reward_type": "premium_days", "reward_amount": 7, "message": "Вам активирован тариф Starter на 7 дней!"},
+}
+
 async def create_promo_code(creator_id: int, reward_type: str, reward_amount: int, max_uses: int = 1, days_valid: int = 30) -> str:
     """Generate a random promo code and store it in the database."""
     alphabet = string.ascii_uppercase + string.digits
@@ -35,19 +43,32 @@ async def use_promo_code(user_id: int, code: str) -> dict:
     """Attempt to use a promo code, return result dict {"success": bool, "message": str, "reward": dict}"""
     code = code.strip().upper()
     async with aiosqlite.connect(DB_PATH) as db:
+        await db.execute("""
+            INSERT OR IGNORE INTO users (user_id, language_code)
+            VALUES (?, 'ru')
+        """, (user_id,))
+
         async with db.execute("""
             SELECT reward_type, reward_amount, max_uses, times_used, expires_at 
             FROM promo_codes WHERE code = ?
         """, (code,)) as cursor:
             promo = await cursor.fetchone()
             
-        if not promo:
+        builtin = BUILTIN_PROMO_CODES.get(code)
+        if not promo and not builtin:
             return {"success": False, "message": "Промокод не найден."}
+
+        if builtin:
+            reward_type = builtin["reward_type"]
+            reward_amount = builtin["reward_amount"]
+            max_uses = 1_000_000
+            times_used = 0
+            expires_at_str = None
+        else:
+            reward_type, reward_amount, max_uses, times_used, expires_at_str = promo
             
-        reward_type, reward_amount, max_uses, times_used, expires_at_str = promo
-        
         # Check uses
-        if times_used >= max_uses:
+        if promo and times_used >= max_uses:
             return {"success": False, "message": "Этот промокод больше не действителен."}
             
         # Check expiration (expires_at can be int or string)
@@ -71,7 +92,7 @@ async def use_promo_code(user_id: int, code: str) -> dict:
             await db.execute("""
                 UPDATE users SET bonus_credits = COALESCE(bonus_credits, 0) + ? WHERE user_id = ?
             """, (reward_amount, user_id))
-            msg = f"Вам начислено {reward_amount} бонусных запросов!"
+            msg = builtin.get("message") if builtin else f"Вам начислено {reward_amount} бонусных запросов!"
             
         elif reward_type == 'premium_days':
             from bot.config.plans import PLANS
@@ -84,11 +105,12 @@ async def use_promo_code(user_id: int, code: str) -> dict:
                 INSERT INTO subscriptions (user_id, plan, status, daily_limit, expires_at)
                 VALUES (?, 'starter', 'active', ?, datetime('now', ? || ' days'))
             """, (user_id, daily_limit, duration_days))
-            msg = f"Вам активирован тариф Starter на {reward_amount} дней!"
+            msg = builtin.get("message") if builtin else f"Вам активирован тариф Starter на {reward_amount} дней!"
             
         # Mark used
         await db.execute("INSERT INTO promo_code_uses (code, user_id) VALUES (?, ?)", (code, user_id))
-        await db.execute("UPDATE promo_codes SET times_used = times_used + 1 WHERE code = ?", (code,))
+        if promo:
+            await db.execute("UPDATE promo_codes SET times_used = times_used + 1 WHERE code = ?", (code,))
         
         await db.commit()
         return {"success": True, "message": msg}

@@ -90,7 +90,7 @@ async def stars_sub_success(message: Message, state: FSMContext, bot: Bot):
         plan_key = parts[1]
         user_id = int(parts[2])
         
-        await activate_subscription(user_id, plan_key)
+        await activate_subscription(user_id, plan_key, bot=bot)
         await track(user_id, "subscription_purchased", {"plan": plan_key, "method": "stars"})
         
         # Note: In a real production app, we would notify admins and update the active sessions 

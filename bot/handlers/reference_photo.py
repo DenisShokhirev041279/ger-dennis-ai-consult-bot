@@ -8,6 +8,7 @@ from utils.config import TRIAL_LIMIT_PER_DAY, ADMIN_IDS
 from utils.db_helpers import get_trial_usage_today, increment_trial_photos
 from utils.subscription import check_subscription
 from bot.ai.gemini_client import merge_reference_photos
+from utils.growth import send_growth_loop
 from utils.logger import logger
 import os
 import uuid
@@ -230,6 +231,7 @@ async def ref_photo_done(message: Message, state: FSMContext, bot: Bot):
             result_image_url,
             caption=captions.get(lang, captions["en"])
         )
+        await send_growth_loop(message, feature="style_art")
 
     except Exception as e:
         err_msg = str(e)

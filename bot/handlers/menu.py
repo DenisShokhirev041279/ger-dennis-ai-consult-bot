@@ -2,7 +2,7 @@ from aiogram import Router, F
 from aiogram.types import Message, ReplyKeyboardMarkup, KeyboardButton
 from utils.db import get_user_lang
 from utils.i18n import get_text
-from utils.config import GEMINI_API_KEY
+from utils.config import GEMINI_API_KEY, REFERRAL_ACTIVATION_BONUS_MESSAGES, REFERRAL_PAYMENT_BONUS_MESSAGES
 
 router = Router()
 
@@ -122,15 +122,20 @@ async def menu_referrals(message: Message):
     bot_info = await message.bot.get_me()
     ref_link = f"https://t.me/{bot_info.username}?start=ref_{user_id}"
 
+    activation_bonus_total = stats.get("activation_bonuses_granted", 0) * REFERRAL_ACTIVATION_BONUS_MESSAGES
+    payment_bonus_total = stats.get("bonuses_granted", 0) * REFERRAL_PAYMENT_BONUS_MESSAGES
+    earned_total = activation_bonus_total + payment_bonus_total
+
     if user_lang == "ru":
         msg = (
             f"🤝 *Реферальная программа*\n\n"
             f"📊 *Ваша статистика:*\n"
             f"• Приглашено: *{stats['total']}*\n"
             f"• Оплатили подписку: *{stats['paid']}*\n"
-            f"• Бонусов заработано: *{stats['bonuses_granted'] * 10}* сообщений\n"
+            f"• Бонусов заработано: *{earned_total}* сообщений\n"
             f"• Бонусов осталось: *{bonus}*\n\n"
-            f"💡 За каждого оплатившего друга вы получаете *+10 сообщений*.\n\n"
+            f"💡 За запуск друга: *+{REFERRAL_ACTIVATION_BONUS_MESSAGES} сообщений*.\n"
+            f"💡 За оплату друга: *+{REFERRAL_PAYMENT_BONUS_MESSAGES} сообщений*.\n\n"
             f"🔗 Ваша ссылка:\n`{ref_link}`"
         )
     elif user_lang == "de":
@@ -139,9 +144,10 @@ async def menu_referrals(message: Message):
             f"📊 *Ihre Statistik:*\n"
             f"• Eingeladen: *{stats['total']}*\n"
             f"• Haben abonniert: *{stats['paid']}*\n"
-            f"• Verdiente Boni: *{stats['bonuses_granted'] * 10}* Nachrichten\n"
+            f"• Verdiente Boni: *{earned_total}* Nachrichten\n"
             f"• Verbleibende Boni: *{bonus}*\n\n"
-            f"💡 Für jeden zahlenden Freund erhalten Sie *+10 Nachrichten*.\n\n"
+            f"💡 Für einen gestarteten Freund erhalten Sie *+{REFERRAL_ACTIVATION_BONUS_MESSAGES} Nachrichten*.\n"
+            f"💡 Für einen zahlenden Freund erhalten Sie *+{REFERRAL_PAYMENT_BONUS_MESSAGES} Nachrichten*.\n\n"
             f"🔗 Ihr Link:\n`{ref_link}`"
         )
     else:
@@ -150,13 +156,28 @@ async def menu_referrals(message: Message):
             f"📊 *Your stats:*\n"
             f"• Invited: *{stats['total']}*\n"
             f"• Subscribed: *{stats['paid']}*\n"
-            f"• Bonuses earned: *{stats['bonuses_granted'] * 10}* messages\n"
+            f"• Bonuses earned: *{earned_total}* messages\n"
             f"• Bonuses remaining: *{bonus}*\n\n"
-            f"💡 For each friend who subscribes you get *+10 messages*.\n\n"
+            f"💡 Friend starts: *+{REFERRAL_ACTIVATION_BONUS_MESSAGES} messages*.\n"
+            f"💡 Friend pays: *+{REFERRAL_PAYMENT_BONUS_MESSAGES} messages*.\n\n"
             f"🔗 Your link:\n`{ref_link}`"
         )
 
     await message.answer(msg, parse_mode="Markdown")
+
+
+@router.callback_query(F.data == "menu_referrals")
+async def callback_menu_referrals(call):
+    class MockMessage:
+        def __init__(self, callback):
+            self.from_user = callback.from_user
+            self.bot = callback.bot
+
+        async def answer(self, *args, **kwargs):
+            return await call.message.answer(*args, **kwargs)
+
+    await menu_referrals(MockMessage(call))
+    await call.answer()
 
 
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
