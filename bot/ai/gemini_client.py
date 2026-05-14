@@ -1,5 +1,6 @@
 import google.genai as genai
 import os
+import base64
 from utils.config import GEMINI_API_KEY
 from utils.logger import logger
 from bot.ai.openai_client import client as openai_client
@@ -15,7 +16,7 @@ else:
     logger.warning("GEMINI_API_KEY is not set. Vision features will fail.")
 
 
-async def merge_reference_photos(image_paths: list[str], user_prompt: str = "") -> str:
+async def merge_reference_photos(image_paths: list[str], user_prompt: str = "") -> str | bytes:
     """
     AI Style Art Generator:
     1. Analyzes reference images with Gemini Vision.
@@ -78,17 +79,30 @@ async def merge_reference_photos(image_paths: list[str], user_prompt: str = "") 
             raise gemini_error
 
         try:
+            image_model = os.getenv("OPENAI_IMAGE_MODEL", "gpt-image-1")
+            image_quality = os.getenv("OPENAI_IMAGE_QUALITY", "medium")
+            image_args = {
+                "model": image_model,
+                "prompt": generated_prompt[:4000],
+                "size": "1024x1024",
+                "n": 1,
+            }
+            if image_model.startswith("gpt-image"):
+                image_args["quality"] = image_quality
+            else:
+                image_args["quality"] = "hd"
+
             dalle_response = await openai_client.images.generate(
-                model="dall-e-3",
-                prompt=generated_prompt[:4000],
-                size="1024x1024",
-                quality="hd",
-                n=1,
+                **image_args,
             )
-            image_url = dalle_response.data[0].url
-            return image_url
+            image_data = dalle_response.data[0]
+            if getattr(image_data, "b64_json", None):
+                return base64.b64decode(image_data.b64_json)
+            if getattr(image_data, "url", None):
+                return image_data.url
+            raise Exception("Image generation returned no image data.")
         except Exception as dalle_error:
-            logger.exception("DALL-E 3 Generation Failed")
+            logger.exception("OpenAI Image Generation Failed")
             raise Exception("Image Generation Service Unavailable.")
 
     except Exception as e:

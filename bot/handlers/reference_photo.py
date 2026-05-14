@@ -1,5 +1,5 @@
 from aiogram import Router, F, Bot
-from aiogram.types import Message, ReplyKeyboardMarkup, KeyboardButton
+from aiogram.types import Message, ReplyKeyboardMarkup, KeyboardButton, BufferedInputFile
 from aiogram.fsm.context import FSMContext
 from bot.states import UserStates
 from utils.db import get_user_lang
@@ -218,7 +218,7 @@ async def ref_photo_done(message: Message, state: FSMContext, bot: Bot):
             await bot.download_file(file.file_path, file_path)
             temp_files.append(file_path)
 
-        result_image_url = await merge_reference_photos(temp_files, prompt)
+        result_image = await merge_reference_photos(temp_files, prompt)
 
         await status_msg.delete()
 
@@ -227,10 +227,12 @@ async def ref_photo_done(message: Message, state: FSMContext, bot: Bot):
             "en": "✅ Done! This is style-inspired art based on your photos: color, mood, light and composition. It is not a face copy.",
             "de": "✅ Fertig! Das ist stilinspirierte Kunst nach Ihren Fotos: Farbe, Stimmung, Licht und Komposition. Es ist keine Gesichtskopie.",
         }
-        await message.answer_photo(
-            result_image_url,
-            caption=captions.get(lang, captions["en"])
+        photo_payload = (
+            BufferedInputFile(result_image, filename="photo_style_art.png")
+            if isinstance(result_image, bytes)
+            else result_image
         )
+        await message.answer_photo(photo_payload, caption=captions.get(lang, captions["en"]))
         await send_growth_loop(message, feature="style_art")
 
     except Exception as e:
