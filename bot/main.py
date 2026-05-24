@@ -73,6 +73,9 @@ async def main():
     app.router.add_get("/", health_check)
     app.router.add_get("/health", health_check)
 
+    from bot.admin_metrics import admin_metrics_handler
+    app.router.add_get("/admin/metrics", admin_metrics_handler)
+
     if webhook_url:
         logger.info(f"Starting in Webhook mode on port {webhook_port}...")
         
