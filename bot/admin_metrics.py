@@ -22,7 +22,7 @@ from datetime import datetime, timedelta, timezone
 import aiosqlite
 from aiohttp import web
 
-from utils.config import DB_PATH
+from utils.db import DB_PATH
 
 
 async def admin_metrics_handler(request: web.Request) -> web.Response:
